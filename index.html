@@ -62,6 +62,40 @@
 <body>
 <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
 
+<!-- ===================== PORTÃO DE ENTRADA (captura de lead) ===================== -->
+<div class="portao-visitante" data-portao-visitante hidden>
+  <div class="portao-visitante__caixa">
+    <img class="portao-visitante__logo" src="assets/img/logo-remop.png" alt="Remop Retífica de Motores e Auto Peças" width="260" height="49">
+    <h2>Antes de entrar</h2>
+    <p>Conta pra gente quem é você e qual carro está em jogo — assim, se precisar de um orçamento, já sabemos por onde começar.</p>
+
+    <form data-form-portao novalidate>
+      <div class="campo">
+        <label for="portao-nome">Seu nome</label>
+        <input id="portao-nome" name="nome" type="text" required autocomplete="name">
+      </div>
+      <div class="campo">
+        <label for="portao-whatsapp">WhatsApp</label>
+        <input id="portao-whatsapp" name="whatsapp" type="tel" required autocomplete="tel" placeholder="(15) 90000-0000">
+      </div>
+      <div class="campo campo--dupla">
+        <div>
+          <label for="portao-modelo">Modelo do carro</label>
+          <input id="portao-modelo" name="modelo" type="text" placeholder="Ex: Onix, Corsa, S10...">
+        </div>
+        <div>
+          <label for="portao-ano">Ano</label>
+          <input id="portao-ano" name="ano" type="text" inputmode="numeric" placeholder="2018" maxlength="4">
+        </div>
+      </div>
+      <button class="botao botao--primario botao--bloco" type="submit">Entrar no site</button>
+      <p class="mensagem-status" data-status-portao></p>
+    </form>
+
+    <button class="portao-visitante__pular" type="button" data-pular-portao>Só quero ver o site, entrar sem preencher</button>
+  </div>
+</div>
+
 <!-- ===================== 1. HEADER ===================== -->
 <header class="cabecalho">
   <div class="cabecalho__conteudo container">
@@ -521,6 +555,7 @@
 
 <script src="assets/js/config.js"></script>
 <script src="assets/js/firebase-init.js"></script>
+<script src="assets/js/visitor-gate.js"></script>
 <script src="assets/js/lead-form.js"></script>
 <script src="assets/js/main.js"></script>
 <script src="assets/js/chat-widget.js"></script>

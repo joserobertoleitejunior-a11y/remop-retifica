@@ -14,6 +14,7 @@ assets/js/config.js            único ponto de config: WhatsApp, endpoint do bot
 assets/js/main.js              menu mobile, links de WhatsApp, modal de agendamento
 assets/js/firebase-init.js     inicialização do Firebase (SDK client-side)
 assets/js/lead-form.js         grava agendamentos no Firestore + fallback WhatsApp
+assets/js/visitor-gate.js      portão de entrada — grava visitante (nome/whatsapp/carro) no Firestore
 assets/js/chat-widget.js       frontend do bot (com fallback quando a function não responde)
 assets/img/                    imagens (placeholders nomeados — ver lista abaixo)
 netlify/functions/chat-bot.js  backend do bot: chama a API da Anthropic (server-side)
@@ -42,8 +43,17 @@ por código — são ações de configuração no painel):
 4. Preencher a config pública do Firebase em `assets/js/config.js`
    (`window.REMOP_CONFIG.firebase`) com os valores reais do projeto Firebase
    — não é segredo, mas precisa ser o projeto certo.
-5. Configurar as regras do Firestore para a coleção `agendamentos` (permitir
-   `create` público, bloquear `read`/`update`/`delete` público).
+5. Configurar as regras do Firestore para as coleções `agendamentos` e
+   `visitantes` (permitir `create` público, bloquear `read`/`update`/`delete`
+   público em ambas — são a base de leads/clientes, não devem ficar
+   públicas pra leitura). Exemplo de regra:
+   ```
+   match /agendamentos/{doc} { allow create: if true; allow read, update, delete: if false; }
+   match /visitantes/{doc}   { allow create: if true; allow read, update, delete: if false; }
+   ```
+   Pra ver os dados depois (dashboard/mini perfil de clientes), acesse pelo
+   Firebase Console ou construa um painel autenticado à parte — nunca deixe
+   a leitura pública dessas coleções.
 6. Conectar o domínio real (`remopretifica.com.br` ou equivalente) em
    **Domain settings**.
 7. Depois de migrar, atualizar `robots.txt`, `sitemap.xml` e as tags

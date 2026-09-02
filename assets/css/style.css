@@ -731,6 +731,7 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   color: var(--cor-texto-claro);
 }
 .campo { margin-bottom: 16px; }
+.campo--dupla { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
 .campo label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
 .campo input,
 .campo select,
@@ -746,6 +747,56 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .mensagem-status { font-size: 0.9rem; margin-top: 10px; }
 .mensagem-status--sucesso { color: var(--cor-sucesso); }
 .mensagem-status--erro { color: #c0392b; }
+
+/* ---------- Portão de entrada (captura de lead antes do site) ---------- */
+.portao-visitante {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 20%, rgba(246,201,69,0.10) 0%, rgba(246,201,69,0) 70%),
+    linear-gradient(180deg, #16204a 0%, #0a0e22 100%);
+}
+.portao-visitante[hidden] { display: none; }
+.portao-visitante__caixa {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(20, 30, 66, 0.6);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 32px 28px;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 40px 90px -30px rgba(0,0,0,0.8);
+}
+.portao-visitante__logo { height: 42px; width: auto; margin: 0 auto 18px; }
+.portao-visitante__caixa h2 { color: #fff; font-size: 1.5rem; margin-bottom: 10px; }
+.portao-visitante__caixa p { color: rgba(255,255,255,0.72); font-size: 0.92rem; margin-bottom: 22px; }
+.portao-visitante__caixa form { text-align: left; }
+.portao-visitante__caixa .campo label { color: rgba(255,255,255,0.85); }
+.portao-visitante__caixa .campo input {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18);
+  color: #fff;
+}
+.portao-visitante__caixa .campo input::placeholder { color: rgba(255,255,255,0.35); }
+.portao-visitante__pular {
+  display: block;
+  margin: 16px auto 0;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.portao-visitante__pular:hover { color: #fff; }
 
 /* ---------- Letras montáveis (efeito de montagem/desmontagem no scroll) ---------- */
 .palavra-montavel {
