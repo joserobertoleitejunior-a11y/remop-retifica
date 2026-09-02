@@ -1030,6 +1030,8 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   border-color: var(--cor-acento);
   transform: translateY(-2px);
 }
+.rodape__redes a[data-whatsapp-link] { color: #25D366; }
+.rodape__redes a[data-whatsapp-link]:hover { color: #fff; background: #25D366; border-color: #25D366; }
 .rodape__contato-item {
   display: flex;
   align-items: flex-start;
@@ -1074,9 +1076,9 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 }
 .whatsapp-flutuante:hover {
   transform: scale(1.08) translateY(-2px);
-  background: var(--cor-acento);
   box-shadow: 0 16px 34px -10px rgba(30,46,99,0.45);
 }
+.whatsapp-flutuante svg { color: #25D366; }
 .whatsapp-flutuante svg { width: 26px; height: 26px; z-index: 1; }
 .whatsapp-flutuante::before {
   content: '';
