@@ -119,6 +119,24 @@
     var quadroAtivo = null;
     var ultimoQuadroAuto = null;
     var ultimoQuadroMomento = null;
+    // Só roda o loop de animação enquanto a faixa está visível na tela
+    // — sem isso, o requestAnimationFrame ficava rodando pra sempre em
+    // segundo plano depois que o visitante rolava a página pra baixo,
+    // gastando bateria/CPU à toa e pesando no resto dos efeitos.
+    var visivel = true;
+    if ("IntersectionObserver" in window) {
+      var observador = new IntersectionObserver(
+        function (entradas) {
+          var estavaVisivel = visivel;
+          visivel = entradas[0].isIntersecting;
+          if (visivel && !estavaVisivel && !arrastando && !quadroAtivo) {
+            quadroAtivo = requestAnimationFrame(autoRolar);
+          }
+        },
+        { threshold: 0 }
+      );
+      observador.observe(trilha);
+    }
 
     function normalizar() {
       if (larguraConjunto <= 0) return;
@@ -137,6 +155,13 @@
     }
 
     function autoRolar(agora) {
+      if (!visivel) {
+        // Não agenda o próximo quadro — quem acorda o loop de novo é
+        // o próprio IntersectionObserver, via aoFicarVisivel().
+        quadroAtivo = null;
+        ultimoQuadroAuto = null;
+        return;
+      }
       if (ultimoQuadroAuto === null) ultimoQuadroAuto = agora;
       var passo = agora - ultimoQuadroAuto;
       ultimoQuadroAuto = agora;

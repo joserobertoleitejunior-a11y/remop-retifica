@@ -132,8 +132,12 @@
       ".hero__frase-curta, .secao__titulo, .vitrine__conteudo h2, .localizacao__grid h2"
     );
 
-    // Eyebrow e parágrafos de apoio — revelação simples (sem quebrar em letra)
-    revelarAoRolar(".eyebrow", { y: 14, duration: 0.5 });
+    // Eyebrow e parágrafos de apoio — revelação simples (sem quebrar em
+    // letra). O eyebrow da hero fica de fora daqui: ele já tem a
+    // própria entrada (linha ~176, direto ao carregar) — deixar os dois
+    // juntos fazia o texto aparecer e sumir (duas animações brigando
+    // pelo mesmo elemento).
+    revelarAoRolar(".eyebrow:not(.hero__conteudo *)", { y: 14, duration: 0.5 });
     revelarAoRolar(".secao__subtitulo, .vitrine__conteudo p");
 
     // Grupos de cards/itens — revelam em sequência (stagger)
