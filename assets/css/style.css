@@ -367,11 +367,21 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   overflow: hidden;
 }
 /* Hero da home usa a foto real da fachada — tem a placa pintada da
-   REMOP nela, então o conteúdo fica ancorado embaixo (parede lisa /
-   calçada), nunca em cima do letreiro. */
+   REMOP nela, então o conteúdo nunca pode ficar em cima do letreiro.
+   No desktop a foto é cortada de um jeito que já esconde a placa
+   (background-position mais abaixo), então só ancorar embaixo resolve.
+   No mobile a foto aparece quase inteira (sem esse corte), então em
+   vez de ancorar embaixo — que depende da altura da tela, e celular
+   de verdade varia muito (barra de endereço do navegador rouba
+   espaço) — empurramos o conteúdo pra baixo do letreiro com um
+   padding-top em porcentagem da LARGURA. Como a régua da imagem em
+   "sem corte vertical" é sempre altura = largura × 1.51, uma
+   porcentagem da largura vira uma fração confiável da imagem em
+   qualquer aparelho, sem depender de vh. */
 .hero--foto-fachada { align-items: flex-end; }
 @media (max-width: 899px) {
-  .hero--foto-fachada { min-height: 118vh; }
+  .hero--foto-fachada { align-items: flex-start; }
+  .hero--foto-fachada .hero__conteudo { padding-top: 76%; }
 }
 .hero__foto {
   position: absolute;
