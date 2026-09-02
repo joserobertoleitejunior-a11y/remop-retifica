@@ -36,11 +36,11 @@
   "name": "Remop Retífica de Motores e Auto Peças",
   "image": "https://joserobertoleitejunior-a11y.github.io/remop-retifica/assets/img/og-image-remop.jpg",
   "url": "https://joserobertoleitejunior-a11y.github.io/remop-retifica/",
-  "telephone": "+55-15-00000-0000",
+  "telephone": "+55-15-99695-4644",
   "priceRange": "$$",
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "R. Av. 5 de Novembro, 1301 — Vila Nastri",
+    "streetAddress": "Av. 5 de Novembro, 1301 — Vila Nastri",
     "addressLocality": "Itapetininga",
     "addressRegion": "SP",
     "postalCode": "18207-320",
@@ -53,12 +53,6 @@
       "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
       "opens": "08:00",
       "closes": "18:00"
-    },
-    {
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": ["Saturday"],
-      "opens": "08:00",
-      "closes": "12:00"
     }
   ],
   "sameAs": []
@@ -85,7 +79,7 @@
     <div class="cabecalho__acoes">
       <a class="cabecalho__contato" data-whatsapp-link href="#" target="_blank" rel="noopener">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        (15) 00000-0000
+        (15) 99695-4644
       </a>
       <a class="botao botao--primario" data-abrir-agendamento href="#" role="button">Agendar avaliação</a>
       <button class="menu-toggle" type="button" aria-controls="nav-principal" aria-expanded="false" aria-label="Abrir menu">☰</button>
@@ -343,11 +337,13 @@
         <h2>Onde estamos</h2>
         <dl class="localizacao__info">
           <dt>Endereço</dt>
-          <dd>R. Av. 5 de Novembro, 1301 — Vila Nastri, Itapetininga - SP, 18207-320</dd>
+          <dd>Av. 5 de Novembro, 1301 — Vila Nastri (em frente ao Mercado Vencedor), Itapetininga - SP, 18207-320</dd>
           <dt>Horário de atendimento</dt>
-          <dd>Segunda a sexta: 08h às 18h · Sábado: 08h às 12h <em>(confirmar horário exato)</em></dd>
-          <dt>Telefone / WhatsApp</dt>
-          <dd><a data-whatsapp-link href="#" target="_blank" rel="noopener">(15) 00000-0000 — confirmar número real</a></dd>
+          <dd>Segunda a sexta: 08h às 18h · Sábado, domingo e feriados: fechado</dd>
+          <dt>WhatsApp</dt>
+          <dd><a data-whatsapp-link href="#" target="_blank" rel="noopener">(15) 99695-4644</a></dd>
+          <dt>Telefone fixo</dt>
+          <dd><a href="tel:+551532718838">(15) 3271-8838</a></dd>
         </dl>
         <a class="botao botao--primario" data-abrir-agendamento href="#" role="button" style="margin-top:16px;">Agendar avaliação</a>
       </div>
@@ -455,8 +451,9 @@
     </div>
     <div>
       <h3>Contato</h3>
-      <p>R. Av. 5 de Novembro, 1301 — Vila Nastri, Itapetininga - SP</p>
-      <p><a data-whatsapp-link href="#" target="_blank" rel="noopener">WhatsApp: (15) 00000-0000</a></p>
+      <p>Av. 5 de Novembro, 1301 — Vila Nastri, Itapetininga - SP</p>
+      <p><a data-whatsapp-link href="#" target="_blank" rel="noopener">WhatsApp: (15) 99695-4644</a></p>
+      <p><a href="tel:+551532718838">Telefone: (15) 3271-8838</a></p>
     </div>
   </div>
   <div class="rodape__base container">
@@ -468,11 +465,16 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 
+<!-- GSAP + ScrollTrigger — animações de entrada ao rolar a página -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
 <script src="assets/js/config.js"></script>
 <script src="assets/js/firebase-init.js"></script>
 <script src="assets/js/lead-form.js"></script>
 <script src="assets/js/main.js"></script>
 <script src="assets/js/chat-widget.js"></script>
+<script src="assets/js/scroll-reveal.js"></script>
 <script>document.getElementById("ano-atual").textContent = new Date().getFullYear();</script>
 </body>
 </html>
