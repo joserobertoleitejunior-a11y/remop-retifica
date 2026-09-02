@@ -4,19 +4,23 @@
    ========================================================================== */
 
 :root {
-  --cor-primaria: #14202e;
-  --cor-primaria-clara: #223650;
-  --cor-acento: #ff6a2b;
-  --cor-acento-escuro: #d6551d;
-  --cor-texto: #1c1c1c;
-  --cor-texto-claro: #5a6472;
+  /* Paleta extraída das fotos reais da fachada e da placa da Remop
+     (amarelo da parede + azul do letreiro/portão) — não são cores
+     inventadas, é a identidade visual real da loja. */
+  --cor-primaria: #1E2E63;
+  --cor-primaria-clara: #2C4090;
+  --cor-acento: #F6C945;
+  --cor-acento-escuro: #D9A916;
+  --cor-texto: #1A1A1A;
+  --cor-texto-claro: #5C6270;
   --cor-fundo: #ffffff;
-  --cor-fundo-alt: #f4f6f8;
-  --cor-borda: #e1e5ea;
+  --cor-fundo-alt: #F5F4EF;
+  --cor-borda: #E3E1D8;
   --cor-sucesso: #1f8a4c;
-  --fonte-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fonte-titulo: 'Oswald', Impact, 'Arial Narrow', sans-serif;
+  --fonte-base: 'Work Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --sombra-card: 0 2px 10px rgba(20, 32, 46, 0.08);
-  --raio: 10px;
+  --raio: 8px;
   --largura-max: 1180px;
 }
 
@@ -44,10 +48,37 @@ a { color: inherit; }
   padding: 0 20px;
 }
 
-h1, h2, h3 { line-height: 1.2; margin: 0 0 12px; }
-h2 { font-size: clamp(1.6rem, 4vw, 2.1rem); }
-h3 { font-size: 1.15rem; }
+h1, h2, h3 {
+  line-height: 1.15;
+  margin: 0 0 12px;
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+h2 { font-size: clamp(1.6rem, 4vw, 2.3rem); }
+h3 { font-size: 1.2rem; text-transform: none; font-weight: 700; }
 p { margin: 0 0 12px; color: var(--cor-texto-claro); }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--fonte-titulo);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cor-acento-escuro);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.eyebrow::before {
+  content: '';
+  width: 22px;
+  height: 2px;
+  background: var(--cor-acento-escuro);
+  display: inline-block;
+}
 
 .secao { padding: 56px 0; }
 .secao--alt { background: var(--cor-fundo-alt); }
@@ -83,18 +114,25 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 13px 22px;
-  border-radius: var(--raio);
+  padding: 13px 24px;
+  border-radius: 999px;
   border: 2px solid transparent;
+  font-family: var(--fonte-titulo);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
   transition: transform .15s ease, background-color .15s ease, box-shadow .15s ease;
 }
-.botao:active { transform: translateY(1px); }
-.botao--primario { background: var(--cor-acento); color: #fff; }
-.botao--primario:hover { background: var(--cor-acento-escuro); }
+.botao:active { transform: scale(0.97); }
+.botao--primario {
+  background: var(--cor-acento);
+  color: var(--cor-primaria);
+  box-shadow: 0 10px 22px -10px rgba(30, 46, 99, 0.45);
+}
+.botao--primario:hover { background: var(--cor-acento-escuro); transform: translateY(-1px); }
 .botao--secundario { background: transparent; border-color: #fff; color: #fff; }
 .botao--secundario:hover { background: rgba(255,255,255,0.12); }
 .botao--outline { background: transparent; border-color: var(--cor-primaria); color: var(--cor-primaria); }
@@ -236,26 +274,42 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .card-servico__icone {
   width: 44px;
   height: 44px;
-  color: var(--cor-acento);
+  color: var(--cor-primaria);
   margin-bottom: 14px;
 }
 .card-servico h3 { margin-bottom: 8px; }
 .card-servico p { flex: 1; }
 .card-servico .botao { align-self: flex-start; margin-top: 10px; }
 
+.botao--sm { padding: 9px 18px; font-size: 0.78rem; }
+
 /* ---------- Diferenciais ---------- */
+.diferenciais__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 36px;
+  align-items: center;
+}
+@media (min-width: 900px) { .diferenciais__layout { grid-template-columns: 1.15fr 0.85fr; } }
+.diferenciais__foto {
+  border-radius: var(--raio);
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  box-shadow: var(--sombra-card);
+}
+.diferenciais__foto img { width: 100%; height: 100%; object-fit: cover; }
+
 .grid-diferenciais {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
 }
-@media (min-width: 700px) { .grid-diferenciais { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1100px) { .grid-diferenciais { grid-template-columns: repeat(4, 1fr); } }
-.item-diferencial { text-align: center; padding: 12px; }
+@media (min-width: 640px) { .grid-diferenciais { grid-template-columns: repeat(2, 1fr); } }
+.item-diferencial { text-align: left; padding: 4px 0; }
 .item-diferencial__icone {
-  width: 40px; height: 40px;
-  margin: 0 auto 12px;
-  color: var(--cor-acento);
+  width: 32px; height: 32px;
+  margin-bottom: 10px;
+  color: var(--cor-primaria);
 }
 
 /* ---------- Prova social ---------- */
@@ -270,10 +324,19 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   background: #fff;
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio);
-  padding: 22px;
+  padding: 26px 24px;
+  text-align: center;
 }
-.card-depoimento__estrelas { color: #f5a623; margin-bottom: 8px; letter-spacing: 2px; }
-.card-depoimento__autor { font-weight: 700; margin-top: 10px; color: var(--cor-texto); }
+.card-depoimento__numero {
+  font-family: var(--fonte-titulo);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--cor-acento-escuro);
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.card-depoimento h3 { font-size: 1.05rem; }
+.card-depoimento .botao { margin-top: 12px; }
 .selos-plataformas {
   display: flex;
   flex-wrap: wrap;
