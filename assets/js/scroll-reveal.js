@@ -75,7 +75,7 @@
         scrollTrigger: {
           trigger: elemento,
           start: "top 90%",
-          toggleActions: "play none none none",
+          once: true,
         },
       });
     });
@@ -97,7 +97,7 @@
             scrollTrigger: {
               trigger: elemento,
               start: "top 88%",
-              toggleActions: "play none none none",
+              once: true,
             },
           },
           opcoes || {}
@@ -120,7 +120,7 @@
         scrollTrigger: {
           trigger: container,
           start: "top 85%",
-          toggleActions: "play none none none",
+          once: true,
         },
       });
     });

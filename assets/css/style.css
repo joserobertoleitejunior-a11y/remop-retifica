@@ -362,52 +362,60 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   color: #fff;
   overflow: hidden;
 }
+/* Hero da home usa a foto real da fachada — tem a placa pintada da
+   REMOP nela, então o conteúdo fica ancorado embaixo (parede lisa /
+   calçada), nunca em cima do letreiro. */
+.hero--foto-fachada { align-items: flex-end; }
+@media (max-width: 899px) {
+  .hero--foto-fachada { min-height: 118vh; }
+}
 .hero__foto {
   position: absolute;
   inset: 0;
-  background: url('../img/hero-oficina-remop.jpg') center 40% / cover no-repeat;
+  background: url('../img/fachada-remop-institucional.jpg') center 68% / cover no-repeat;
   z-index: 0;
   transform-origin: center center;
   will-change: transform, filter, opacity;
 }
+/* Essa foto tem a placa da REMOP e o número do endereço pintados na
+   parede — sem esconder a foto real, só um véu mais forte que a
+   receita padrão, pra ler como fundo atmosférico e não como um
+   cartaz a decifrar por trás do título. */
 .hero__foto::after {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(120% 90% at 15% 100%, rgba(8,11,26,0.1) 0%, rgba(8,11,26,0) 55%),
-    linear-gradient(180deg, rgba(22,32,66,0.28) 0%, rgba(22,32,66,0.22) 45%, rgba(22,32,66,0.17) 100%);
+    radial-gradient(120% 90% at 15% 100%, rgba(8,11,26,0.15) 0%, rgba(8,11,26,0) 55%),
+    linear-gradient(180deg, rgba(22,32,66,0.29) 0%, rgba(22,32,66,0.26) 45%, rgba(22,32,66,0.22) 100%);
 }
 @media (min-width: 900px) {
   .hero__foto::after {
     background:
-      radial-gradient(70% 100% at 0% 100%, rgba(8,11,26,0.12) 0%, rgba(8,11,26,0) 60%),
-      linear-gradient(90deg, rgba(22,32,66,0.29) 0%, rgba(22,32,66,0.25) 38%, rgba(22,32,66,0.11) 72%, rgba(22,32,66,0.03) 100%);
+      radial-gradient(70% 100% at 0% 100%, rgba(8,11,26,0.17) 0%, rgba(8,11,26,0) 60%),
+      linear-gradient(90deg, rgba(22,32,66,0.29) 0%, rgba(22,32,66,0.27) 42%, rgba(22,32,66,0.17) 74%, rgba(22,32,66,0.09) 100%);
   }
 }
 
 /* Hero das páginas secundárias (Institucional) — mesma receita da home,
    mais baixo porque aqui é só a abertura da página, não a primeira
-   impressão do site inteiro. Foto real da fachada, sem filtro nenhum —
-   só o véu escuro que já usamos em toda foto de hero. */
+   impressão do site inteiro. Foto real do interior da oficina, sem
+   texto pintado, então usa o véu mais leve. */
 .hero--institucional { min-height: 52vh; }
 .hero__foto--institucional {
-  background-image: url('../img/fachada-remop-institucional.jpg');
-  background-position: center 24%;
+  background-image: url('../img/hero-oficina-remop.jpg');
+  background-position: center 40%;
 }
-/* Essa foto tem placas com texto (contato/endereço) — sem esconder a
-   foto real, só um véu mais forte que a receita padrão, pra ler como
-   fundo atmosférico e não como um cartaz a decifrar por trás do título. */
 .hero__foto--institucional::after {
   background:
-    radial-gradient(120% 90% at 15% 100%, rgba(8,11,26,0.15) 0%, rgba(8,11,26,0) 55%),
-    linear-gradient(180deg, rgba(22,32,66,0.29) 0%, rgba(22,32,66,0.26) 45%, rgba(22,32,66,0.22) 100%);
+    radial-gradient(120% 90% at 15% 100%, rgba(8,11,26,0.1) 0%, rgba(8,11,26,0) 55%),
+    linear-gradient(180deg, rgba(22,32,66,0.28) 0%, rgba(22,32,66,0.22) 45%, rgba(22,32,66,0.17) 100%);
 }
 @media (min-width: 900px) {
   .hero__foto--institucional::after {
     background:
-      radial-gradient(70% 100% at 0% 100%, rgba(8,11,26,0.17) 0%, rgba(8,11,26,0) 60%),
-      linear-gradient(90deg, rgba(22,32,66,0.29) 0%, rgba(22,32,66,0.27) 42%, rgba(22,32,66,0.17) 74%, rgba(22,32,66,0.09) 100%);
+      radial-gradient(70% 100% at 0% 100%, rgba(8,11,26,0.12) 0%, rgba(8,11,26,0) 60%),
+      linear-gradient(90deg, rgba(22,32,66,0.29) 0%, rgba(22,32,66,0.25) 38%, rgba(22,32,66,0.11) 72%, rgba(22,32,66,0.03) 100%);
   }
 }
 
