@@ -180,5 +180,24 @@
         { opacity: 0, y: 14, duration: 0.45, stagger: 0.1 },
         "-=0.25"
       );
+
+    /**
+     * gsap.from() já deixa cada elemento invisível (opacity:0) assim que
+     * o ScrollTrigger é criado, esperando o scroll cruzar a posição
+     * calculada naquele momento. Só que imagens (galeria, vitrine, fotos
+     * de destaque) ainda estão carregando e vão empurrar o layout pra
+     * baixo depois — a posição calculada fica desatualizada e o
+     * elemento pode nunca "cruzar" o gatilho, ficando invisível pra
+     * sempre (era isso que travava o texto). Recalcula tudo assim que
+     * as imagens e as fontes terminarem de carregar.
+     */
+    window.addEventListener("load", function () {
+      ScrollTrigger.refresh();
+    });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        ScrollTrigger.refresh();
+      });
+    }
   });
 })();
