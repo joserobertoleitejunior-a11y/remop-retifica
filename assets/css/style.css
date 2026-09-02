@@ -288,6 +288,29 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .hero__texto { color: rgba(255,255,255,0.88); font-size: 1.05rem; }
 .hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 
+/* ---------- Vitrine (Garagem) ----------
+   Holofote estilo tela de garagem: fundo escuro em degradê radial +
+   um carro real centralizado, iluminado. A foto do carro não leva
+   nenhum filtro — é o fundo ao redor dela que é encenado em CSS. */
+.vitrine {
+  position: relative;
+  padding: 64px 0 70px;
+  text-align: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 80% at 50% 38%, rgba(246,201,69,0.16) 0%, rgba(246,201,69,0) 70%),
+    radial-gradient(ellipse 120% 100% at 50% 0%, #24356e 0%, #16204a 45%, #080b1a 100%);
+}
+.vitrine__conteudo h2 { margin-top: 8px; }
+.vitrine__carro {
+  max-width: 380px;
+  margin: 32px auto 0;
+  border-radius: var(--raio);
+  overflow: hidden;
+  box-shadow: 0 40px 80px -24px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08);
+}
+.vitrine__carro img { width: 100%; display: block; }
+
 /* ---------- Serviços ---------- */
 .grid-servicos {
   display: grid;
