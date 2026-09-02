@@ -1,0 +1,160 @@
+/* ==========================================================================
+   Widget de atendimento (bot) — Remop Retífica
+   ========================================================================== */
+
+.chat-widget {
+  position: fixed;
+  right: 18px;
+  bottom: 86px;
+  z-index: 700;
+  font-family: var(--fonte-base, sans-serif);
+}
+
+.chat-widget__botao {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cor-primaria, #14202e);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chat-widget__botao svg { width: 26px; height: 26px; }
+
+.chat-widget__painel {
+  position: absolute;
+  right: 0;
+  bottom: 70px;
+  width: min(340px, 90vw);
+  max-height: 480px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--cor-borda, #e1e5ea);
+}
+.chat-widget__painel.aberto { display: flex; }
+
+.chat-widget__cabecalho {
+  background: var(--cor-primaria, #14202e);
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chat-widget__cabecalho strong { display: block; font-size: 0.95rem; }
+.chat-widget__cabecalho span { display: block; font-size: 0.75rem; color: rgba(255,255,255,0.7); }
+.chat-widget__fechar {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.chat-widget__mensagens {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--cor-fundo-alt, #f4f6f8);
+  min-height: 220px;
+}
+
+.chat-widget__bolha {
+  max-width: 85%;
+  padding: 10px 13px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+.chat-widget__bolha--bot {
+  background: #fff;
+  border: 1px solid var(--cor-borda, #e1e5ea);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+.chat-widget__bolha--usuario {
+  background: var(--cor-acento, #ff6a2b);
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+.chat-widget__bolha--sistema {
+  background: #fff3e6;
+  border: 1px dashed var(--cor-acento, #ff6a2b);
+  align-self: stretch;
+  font-size: 0.85rem;
+}
+
+.chat-widget__digitando {
+  align-self: flex-start;
+  display: flex;
+  gap: 4px;
+  padding: 10px 13px;
+}
+.chat-widget__digitando span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cor-texto-claro, #5a6472);
+  animation: chat-digitando 1s infinite ease-in-out;
+}
+.chat-widget__digitando span:nth-child(2) { animation-delay: .15s; }
+.chat-widget__digitando span:nth-child(3) { animation-delay: .3s; }
+@keyframes chat-digitando {
+  0%, 60%, 100% { opacity: .3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+.chat-widget__form {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid var(--cor-borda, #e1e5ea);
+  background: #fff;
+}
+.chat-widget__input {
+  flex: 1;
+  border: 1px solid var(--cor-borda, #e1e5ea);
+  border-radius: 20px;
+  padding: 9px 14px;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+.chat-widget__enviar {
+  border: none;
+  background: var(--cor-acento, #ff6a2b);
+  color: #fff;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.chat-widget__enviar:disabled { opacity: .5; cursor: not-allowed; }
+
+.chat-widget__fallback {
+  padding: 14px;
+  text-align: center;
+  border-top: 1px solid var(--cor-borda, #e1e5ea);
+}
+.chat-widget__fallback p { font-size: 0.85rem; margin-bottom: 10px; }
+
+@media (max-width: 380px) {
+  .chat-widget { right: 12px; bottom: 78px; }
+  .whatsapp-flutuante { right: 12px; }
+}
