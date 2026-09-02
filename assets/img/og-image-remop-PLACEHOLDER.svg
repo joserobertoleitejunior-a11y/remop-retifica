@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="Placeholder: imagem de compartilhamento (Open Graph)">
+  <rect width="1200" height="630" fill="#14202e"/>
+  <circle cx="150" cy="315" r="80" fill="#ff6a2b"/>
+  <path d="M150 255a60 60 0 1 0 0.01 0zm0 26a34 34 0 1 1 0 68 34 34 0 0 1 0-68z" fill="#14202e"/>
+  <text x="280" y="300" font-family="Arial, sans-serif" font-size="56" font-weight="800" fill="#ffffff">REMOP</text>
+  <text x="280" y="350" font-family="Arial, sans-serif" font-size="26" fill="#c9d2db">Retífica de Motores e Auto Peças — Itapetininga/SP</text>
+  <text x="280" y="400" font-family="Arial, sans-serif" font-size="18" fill="#8a97a8">Imagem placeholder — substituir por foto real antes de publicar</text>
+</svg>

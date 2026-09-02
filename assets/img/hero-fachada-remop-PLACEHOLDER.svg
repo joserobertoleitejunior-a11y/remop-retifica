@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Placeholder: foto da fachada da Remop">
+  <rect width="800" height="600" fill="#223650"/>
+  <g fill="none" stroke="#3a5170" stroke-width="2">
+    <line x1="0" y1="150" x2="800" y2="150"/>
+    <line x1="0" y1="300" x2="800" y2="300"/>
+    <line x1="0" y1="450" x2="800" y2="450"/>
+  </g>
+  <text x="400" y="290" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff" text-anchor="middle">FOTO REAL PENDENTE</text>
+  <text x="400" y="330" font-family="Arial, sans-serif" font-size="18" fill="#c9d2db" text-anchor="middle">Fachada / galpão da Remop (hero)</text>
+</svg>
