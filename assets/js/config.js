@@ -13,7 +13,7 @@ window.REMOP_CONFIG = {
     "Olá! Vim pelo site da Remop e gostaria de solicitar um orçamento.",
 
   enderecoCompleto:
-    "Av. 5 de Novembro, 1301 — Vila Nastri (em frente ao Mercado Vencedor), Itapetininga - SP, 18207-320",
+    "Av. 5 de Novembro, 1301 — Vila Nastri, Itapetininga - SP, 18207-320",
 
   // Endpoint do bot. Só responde quando o site estiver publicado no Netlify
   // com a Netlify Function configurada e ANTHROPIC_API_KEY definida.
