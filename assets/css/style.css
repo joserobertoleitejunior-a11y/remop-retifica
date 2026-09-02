@@ -576,7 +576,7 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   grid-template-columns: 1fr;
 }
 @media (min-width: 800px) { .rodape__grid { grid-template-columns: 2fr 1fr 1fr; } }
-.rodape__logo { font-weight: 800; font-size: 1.2rem; color: #fff; }
+.rodape__logo { height: 32px; width: auto; display: block; }
 .rodape h3 { color: #fff; font-size: 1rem; }
 .rodape a { color: rgba(255,255,255,0.85); text-decoration: none; }
 .rodape a:hover { color: #fff; text-decoration: underline; }
