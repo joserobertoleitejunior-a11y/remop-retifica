@@ -381,7 +381,7 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .hero--foto-fachada { align-items: flex-end; }
 @media (max-width: 899px) {
   .hero--foto-fachada { align-items: flex-start; }
-  .hero--foto-fachada .hero__conteudo { padding-top: 76%; }
+  .hero--foto-fachada .hero__conteudo { padding-top: 92%; }
 }
 .hero__foto {
   position: absolute;
