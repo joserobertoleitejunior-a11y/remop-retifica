@@ -17,8 +17,8 @@
   --cor-fundo-alt: #F5F4EF;
   --cor-borda: #E3E1D8;
   --cor-sucesso: #1f8a4c;
-  --fonte-titulo: 'Oswald', Impact, 'Arial Narrow', sans-serif;
-  --fonte-base: 'Work Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fonte-titulo: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --fonte-base: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --sombra-card: 0 2px 10px rgba(20, 32, 46, 0.08);
   --raio: 8px;
   --largura-max: 1180px;
@@ -676,6 +676,16 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .mensagem-status { font-size: 0.9rem; margin-top: 10px; }
 .mensagem-status--sucesso { color: var(--cor-sucesso); }
 .mensagem-status--erro { color: #c0392b; }
+
+/* ---------- Letras montáveis (efeito de montagem/desmontagem no scroll) ---------- */
+.palavra-montavel {
+  display: inline-block;
+  white-space: nowrap;
+}
+.letra-montavel {
+  display: inline-block;
+  will-change: transform, opacity;
+}
 
 /* ---------- Skeleton / lazy ---------- */
 .skeleton {

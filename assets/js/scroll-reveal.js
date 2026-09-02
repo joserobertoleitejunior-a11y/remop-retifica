@@ -3,6 +3,11 @@
  * conforme o padrão de motion da agência (PADROES-AGENCIA.md §2):
  * GSAP/ScrollTrigger para narrativa de scroll e transição de seção.
  *
+ * Os títulos principais usam um efeito de "montagem/desmontagem": cada
+ * letra some montada em pedaços espalhados e vai se encaixando conforme
+ * a página rola — como progresso (scrub) preso na posição do scroll, o
+ * mesmo efeito acontece ao contrário se o visitante rolar pra cima.
+ *
  * Respeita prefers-reduced-motion: quando ativo, os elementos aparecem
  * direto, sem nenhuma animação.
  */
@@ -16,6 +21,68 @@
   if (typeof gsap === "undefined" || reduzMovimento) return;
 
   gsap.registerPlugin(ScrollTrigger);
+
+  /**
+   * Quebra o texto de um título em letras (dentro de palavras, pra não
+   * perder a quebra de linha natural). O texto real continua acessível
+   * via aria-label; as letras viram decoração (aria-hidden).
+   */
+  function dividirEmLetras(elemento) {
+    var textoOriginal = elemento.textContent.trim();
+    elemento.setAttribute("aria-label", textoOriginal);
+    elemento.innerHTML = "";
+
+    var palavras = textoOriginal.split(" ");
+    palavras.forEach(function (palavra, indice) {
+      var spanPalavra = document.createElement("span");
+      spanPalavra.className = "palavra-montavel";
+      spanPalavra.setAttribute("aria-hidden", "true");
+
+      palavra.split("").forEach(function (letra) {
+        var spanLetra = document.createElement("span");
+        spanLetra.className = "letra-montavel";
+        spanLetra.textContent = letra;
+        spanPalavra.appendChild(spanLetra);
+      });
+
+      elemento.appendChild(spanPalavra);
+      if (indice < palavras.length - 1) {
+        elemento.appendChild(document.createTextNode(" "));
+      }
+    });
+
+    return elemento.querySelectorAll(".letra-montavel");
+  }
+
+  function montarDesmontarAoRolar(seletor) {
+    var elementos = gsap.utils.toArray(seletor);
+    elementos.forEach(function (elemento) {
+      var letras = dividirEmLetras(elemento);
+      if (!letras.length) return;
+
+      gsap.set(letras, {
+        x: function () { return gsap.utils.random(-70, 70); },
+        y: function () { return gsap.utils.random(-50, 50); },
+        rotation: function () { return gsap.utils.random(-40, 40); },
+        opacity: 0.1,
+      });
+
+      gsap.to(letras, {
+        x: 0,
+        y: 0,
+        rotation: 0,
+        opacity: 1,
+        ease: "power1.out",
+        stagger: { each: 0.015, from: "random" },
+        scrollTrigger: {
+          trigger: elemento,
+          start: "top 92%",
+          end: "top 38%",
+          scrub: 0.6,
+        },
+      });
+    });
+  }
 
   function revelarAoRolar(seletor, opcoes) {
     var elementos = gsap.utils.toArray(seletor);
@@ -63,9 +130,13 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    // Cabeçalhos de seção (eyebrow + título + subtítulo)
+    // Títulos principais — efeito de montagem/desmontagem por letra
+    montarDesmontarAoRolar(
+      ".hero__frase-curta, .secao__titulo, .vitrine__conteudo h2, .localizacao__grid h2"
+    );
+
+    // Eyebrow e parágrafos de apoio — revelação simples (sem quebrar em letra)
     revelarAoRolar(".eyebrow", { y: 14, duration: 0.5 });
-    revelarAoRolar(".secao__titulo, .vitrine__conteudo h2");
     revelarAoRolar(".secao__subtitulo, .vitrine__conteudo p");
 
     // Grupos de cards/itens — revelam em sequência (stagger)
@@ -83,16 +154,12 @@
     revelarAoRolar(".localizacao__mapa", { x: -24, y: 0, duration: 0.8 });
     revelarAoRolar(".localizacao__info", { x: 24, y: 0, duration: 0.8 });
 
-    // Entrada da hero, direto ao carregar (sem depender de scroll)
+    // Entrada da hero, direto ao carregar (sem depender de scroll) —
+    // o título já foi tratado por montarDesmontarAoRolar acima.
     gsap
       .timeline({ defaults: { ease: "power2.out" } })
       .from(".hero__conteudo .eyebrow", { opacity: 0, y: 16, duration: 0.5 })
-      .from(
-        ".hero__frase-curta",
-        { opacity: 0, y: 24, duration: 0.6 },
-        "-=0.25"
-      )
-      .from(".hero__texto", { opacity: 0, y: 18, duration: 0.5 }, "-=0.3")
+      .from(".hero__texto", { opacity: 0, y: 18, duration: 0.5 }, "-=0.1")
       .from(
         ".hero__ctas .botao",
         { opacity: 0, y: 14, duration: 0.45, stagger: 0.1 },
