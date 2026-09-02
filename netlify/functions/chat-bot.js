@@ -26,6 +26,52 @@ const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_MODEL = "claude-haiku-4-5";
 const MAX_MENSAGENS_HISTORICO = 12;
 const MAX_CARACTERES_MENSAGEM = 1000;
+const MAX_CARACTERES_INSTRUCOES_EXTRAS = 1500;
+
+/**
+ * Instruções extras que a equipe cadastra pelo painel admin (Firestore,
+ * doc config/assistente) e que se somam ao SYSTEM_PROMPT fixo abaixo —
+ * ex.: destacar uma promoção, ajustar tom de voz. Totalmente opcional:
+ * sem FIREBASE_SERVICE_ACCOUNT configurada (ou qualquer falha na leitura),
+ * o bot segue com o comportamento padrão, sem quebrar a conversa.
+ */
+let appAdminFirebase = null;
+
+function obterAppAdminFirebase() {
+  if (appAdminFirebase) return appAdminFirebase;
+
+  const credencial = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!credencial) return null;
+
+  try {
+    const admin = require("firebase-admin");
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(JSON.parse(credencial)),
+      });
+    }
+    appAdminFirebase = admin;
+    return appAdminFirebase;
+  } catch (erro) {
+    console.warn("[chat-bot] Falha ao inicializar firebase-admin:", erro.message);
+    return null;
+  }
+}
+
+async function buscarInstrucoesExtras() {
+  const admin = obterAppAdminFirebase();
+  if (!admin) return "";
+
+  try {
+    const doc = await admin.firestore().collection("config").doc("assistente").get();
+    if (!doc.exists) return "";
+    const texto = String(doc.data().instrucoesExtras || "").trim();
+    return texto.slice(0, MAX_CARACTERES_INSTRUCOES_EXTRAS);
+  } catch (erro) {
+    console.warn("[chat-bot] Falha ao buscar instruções extras do Firestore:", erro.message);
+    return "";
+  }
+}
 
 const SYSTEM_PROMPT = `Você é o assistente de diagnóstico da Remop Retífica de Motores e Auto Peças, em Itapetininga-SP, no ar desde 1989.
 
@@ -161,10 +207,19 @@ exports.handler = async function (event) {
         : mensagemUsuario,
   });
 
+  const instrucoesExtras = await buscarInstrucoesExtras();
+  const contextoInstrucoesExtras = instrucoesExtras
+    ? "\n\nInstruções extras da equipe (siga junto com as regras acima): " + instrucoesExtras
+    : "";
+
   const corpoRequisicao = {
     model: ANTHROPIC_MODEL,
     max_tokens: 600,
-    system: SYSTEM_PROMPT + contextoIdentidade(corpo.identidade) + contextoServico(corpo.servico),
+    system:
+      SYSTEM_PROMPT +
+      contextoIdentidade(corpo.identidade) +
+      contextoServico(corpo.servico) +
+      contextoInstrucoesExtras,
     messages: mensagens,
   };
 

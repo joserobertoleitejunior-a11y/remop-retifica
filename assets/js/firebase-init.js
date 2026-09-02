@@ -26,5 +26,9 @@
   }
 
   firebase.initializeApp(config);
-  window.RemopFirebase = { pronto: true, db: firebase.firestore() };
+  window.RemopFirebase = {
+    pronto: true,
+    db: firebase.firestore(),
+    storage: typeof firebase.storage === "function" ? firebase.storage() : null,
+  };
 })();

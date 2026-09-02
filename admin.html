@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20260902d">
-<link rel="stylesheet" href="assets/css/admin.css?v=20260902d">
+<link rel="stylesheet" href="assets/css/style.css?v=20260902e">
+<link rel="stylesheet" href="assets/css/admin.css?v=20260902e">
 </head>
 <body class="admin-body">
 
@@ -41,8 +41,11 @@
       <img src="assets/img/logo-remop.png" alt="Remop Retífica de Motores e Auto Peças" width="160" height="30">
     </a>
 
-    <nav class="admin-nav">
-      <a href="#dashboard" aria-current="page">Dashboard</a>
+    <nav class="admin-nav" data-admin-nav>
+      <a href="#dashboard" data-secao-link="dashboard">Dashboard</a>
+      <a href="#clientes" data-secao-link="clientes">Clientes</a>
+      <a href="#galeria" data-secao-link="galeria">Galeria</a>
+      <a href="#assistente" data-secao-link="assistente">Assistente IA</a>
     </nav>
 
     <div class="admin-header__acoes">
@@ -51,7 +54,8 @@
     </div>
   </header>
 
-  <main class="admin-conteudo" id="dashboard">
+  <!-- ===================== DASHBOARD ===================== -->
+  <main class="admin-conteudo" data-secao="dashboard">
     <div class="admin-topo">
       <h1>Dashboard</h1>
       <select data-periodo aria-label="Período do dashboard">
@@ -94,6 +98,17 @@
     </div>
 
     <div class="admin-tabela-caixa">
+      <h2>Cliques por página</h2>
+      <p class="admin-texto-apoio">Contagem real dos cliques nos CTAs (WhatsApp, agendamento, IA), agrupada pela página onde aconteceu — sem depender de conta no Google Analytics.</p>
+      <div class="admin-tabela-scroll">
+        <table class="admin-tabela" data-tabela-cliques-pagina>
+          <thead><tr><th>Página</th><th>Cliques</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-tabela-caixa">
       <h2>Últimas perguntas feitas à IA</h2>
       <div class="admin-tabela-scroll">
         <table class="admin-tabela" data-tabela-perguntas>
@@ -103,15 +118,97 @@
       </div>
     </div>
   </main>
+
+  <!-- ===================== CLIENTES ===================== -->
+  <main class="admin-conteudo" data-secao="clientes" hidden>
+    <div class="admin-topo">
+      <h1>Clientes</h1>
+      <input type="search" data-filtro-clientes placeholder="Buscar por nome..." class="admin-busca">
+    </div>
+
+    <div class="admin-tabela-caixa">
+      <h2>Agendamentos</h2>
+      <p class="admin-texto-apoio">Pedidos feitos pelo formulário "Agendar avaliação", mais recentes primeiro.</p>
+      <div class="admin-tabela-scroll">
+        <table class="admin-tabela" data-tabela-agendamentos>
+          <thead><tr><th>Quando</th><th>Nome</th><th>Telefone</th><th>Serviço</th><th>Mensagem</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-tabela-caixa">
+      <h2>Visitantes (portão de entrada)</h2>
+      <p class="admin-texto-apoio">Todo mundo que preencheu nome/WhatsApp/carro pra entrar no site, mais recentes primeiro.</p>
+      <div class="admin-tabela-scroll">
+        <table class="admin-tabela" data-tabela-visitantes>
+          <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th>Carro</th><th>Ano</th><th>Página</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===================== GALERIA ===================== -->
+  <main class="admin-conteudo" data-secao="galeria" hidden>
+    <div class="admin-topo">
+      <h1>Galeria de fotos</h1>
+    </div>
+    <p class="admin-texto-apoio">As fotos adicionadas aqui aparecem automaticamente na galeria da página Institucional, depois das fotos que já existem no site.</p>
+
+    <div class="admin-tabela-caixa">
+      <h2>Adicionar foto</h2>
+      <form class="admin-form-galeria" data-form-galeria>
+        <div class="campo">
+          <label for="galeria-arquivo">Arquivo (JPG, PNG ou WebP)</label>
+          <input id="galeria-arquivo" name="arquivo" type="file" accept="image/*" required>
+        </div>
+        <div class="campo">
+          <label for="galeria-alt">Descrição da foto (texto alternativo)</label>
+          <input id="galeria-alt" name="alt" type="text" required placeholder="Ex: Motor retificado pronto pra entrega">
+        </div>
+        <button class="botao botao--primario" type="submit">Enviar foto</button>
+        <p class="mensagem-status" data-status-galeria></p>
+      </form>
+    </div>
+
+    <div class="admin-galeria-grid" data-galeria-grid></div>
+  </main>
+
+  <!-- ===================== ASSISTENTE IA ===================== -->
+  <main class="admin-conteudo" data-secao="assistente" hidden>
+    <div class="admin-topo">
+      <h1>Assistente de IA</h1>
+    </div>
+
+    <div class="admin-tabela-caixa">
+      <h2>Instruções extras</h2>
+      <p class="admin-texto-apoio">
+        O assistente já segue um roteiro fixo (passo a passo de diagnóstico, nunca informa preço fechado,
+        nunca confirma agendamento sozinho). O texto abaixo é acrescentado às instruções dele — use pra
+        ajustar tom de voz, destacar uma promoção, pedir pra reforçar algum serviço, etc. Deixe em branco
+        pra usar só o comportamento padrão.
+      </p>
+      <form data-form-assistente>
+        <div class="campo">
+          <label for="assistente-instrucoes">Instruções extras pro assistente</label>
+          <textarea id="assistente-instrucoes" name="instrucoes" rows="8" placeholder="Ex: Estamos com condição especial pra troca de correia dentada em outubro — mencione isso se o cliente perguntar sobre correia."></textarea>
+        </div>
+        <button class="botao botao--primario" type="submit">Salvar instruções</button>
+        <p class="mensagem-status" data-status-assistente></p>
+      </form>
+    </div>
+  </main>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 
-<script src="assets/js/config.js?v=20260902d"></script>
-<script src="assets/js/firebase-init.js?v=20260902d"></script>
-<script src="assets/js/admin.js?v=20260902d"></script>
+<script src="assets/js/config.js?v=20260902e"></script>
+<script src="assets/js/firebase-init.js?v=20260902e"></script>
+<script src="assets/js/admin.js?v=20260902e"></script>
 </body>
 </html>

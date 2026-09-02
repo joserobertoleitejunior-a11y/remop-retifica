@@ -21,12 +21,14 @@ assets/js/lead-form.js         grava agendamentos no Firestore + fallback WhatsA
 assets/js/visitor-gate.js      portão de entrada — grava visitante (nome/whatsapp/carro) no Firestore
 assets/js/chat-widget.js       frontend do bot (com fallback quando a function não responde)
 assets/js/analytics.js         rastreamento leve: páginas vistas, cliques em CTAs e perguntas feitas ao bot
+assets/js/galeria.js           acrescenta na galeria do institucional as fotos cadastradas pelo admin
 assets/css/admin.css           estilos do painel administrativo
-assets/js/admin.js             login (Firebase Auth) + dashboard (Chart.js) do painel administrativo
-admin.html                     painel administrativo — dashboard com dados reais (login restrito)
+assets/js/admin.js             login + dashboard, Clientes, Galeria e Assistente IA do painel administrativo
+admin.html                     painel administrativo completo (login restrito)
 assets/img/                    imagens (fotos reais + placeholders — ver lista abaixo)
-netlify/functions/chat-bot.js  backend do bot: chama a API da Anthropic (server-side)
+netlify/functions/chat-bot.js  backend do bot: chama a API da Anthropic + lê instruções extras (firebase-admin)
 netlify.toml                   config de deploy pro Netlify (pronta, ainda não ativa)
+package.json                   só a dependência firebase-admin, usada pela function do bot
 .env.example                   variáveis necessárias (nunca commitar .env real)
 robots.txt / sitemap.xml       SEO técnico (as 3 páginas listadas)
 ```
@@ -53,48 +55,79 @@ por código — são ações de configuração no painel):
    `netlify/functions` (já configurado em `netlify.toml`).
 3. Em **Site settings → Environment variables**, adicionar:
    - `ANTHROPIC_API_KEY` — chave real da API da Anthropic.
+   - `FIREBASE_SERVICE_ACCOUNT` — opcional, só se for usar o editor de
+     "Instruções extras" do assistente (ver seção do painel admin abaixo).
 4. Preencher a config pública do Firebase em `assets/js/config.js`
    (`window.REMOP_CONFIG.firebase`) com os valores reais do projeto Firebase
    — não é segredo, mas precisa ser o projeto certo.
-5. Configurar as regras do Firestore para as coleções `agendamentos`,
-   `visitantes`, `paginas_vistas`, `cliques` e `perguntas_ia`: `create`
-   público (o site grava sem estar logado), mas `read`/`update`/`delete`
-   só para quem estiver autenticado (o painel admin) — nunca deixe a
-   leitura pública dessas coleções, são a base de leads/clientes e
-   analytics. Exemplo de regra:
+5. Configurar as regras do Firestore. `agendamentos`, `visitantes`,
+   `paginas_vistas`, `cliques` e `perguntas_ia` continuam com `create`
+   público (o site grava sem estar logado) e `read`/`update`/`delete` só
+   para autenticado — nunca deixe a leitura pública dessas coleções, são a
+   base de leads/clientes e analytics. `galeria` e `config` (usadas pelo
+   painel admin) são o oposto: `read` público (o site precisa ler pra
+   mostrar a galeria e as instruções do assistente sem estar logado), mas
+   só o admin autenticado pode escrever:
    ```
    match /agendamentos/{doc}   { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
    match /visitantes/{doc}     { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
    match /paginas_vistas/{doc} { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
    match /cliques/{doc}        { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
    match /perguntas_ia/{doc}   { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
+   match /galeria/{doc}        { allow read: if true; allow write: if request.auth != null; }
+   match /config/{doc}         { allow read: if true; allow write: if request.auth != null; }
    ```
-6. Conectar o domínio real (`remopretifica.com.br` ou equivalente) em
+6. Configurar as regras do Firebase Storage (upload de fotos da galeria) —
+   leitura pública, escrita só autenticada:
+   ```
+   match /galeria/{arquivo} { allow read: if true; allow write: if request.auth != null; }
+   ```
+7. Conectar o domínio real (`remopretifica.com.br` ou equivalente) em
    **Domain settings**.
-7. Depois de migrar, atualizar `robots.txt`, `sitemap.xml` e as tags
+8. Depois de migrar, atualizar `robots.txt`, `sitemap.xml` e as tags
    `canonical`/Open Graph em `index.html` para usar o domínio final em vez
    da URL do GitHub Pages.
 
 Nenhuma chave real deve ser colocada em código — a function já usa
-`process.env.ANTHROPIC_API_KEY` sem valor hardcoded.
+`process.env.ANTHROPIC_API_KEY` e `process.env.FIREBASE_SERVICE_ACCOUNT`
+sem valor hardcoded.
 
 ## Painel administrativo (`admin.html`)
 
-Dashboard com dados reais (visitantes do portão, agendamentos, cliques nos
-principais CTAs e perguntas feitas ao bot), protegido por login. Setup
-manual (uma vez só):
+Painel completo, protegido por login, com quatro abas:
+
+- **Dashboard** — visitantes do portão, agendamentos, cliques nos principais
+  CTAs (com uma tabela de cliques agrupados por página) e perguntas feitas
+  ao bot, tudo com dados reais do Firestore.
+- **Clientes** — tabela completa de agendamentos e de visitantes do portão
+  (todos os campos: nome, WhatsApp/telefone, carro, serviço, mensagem,
+  status, página, data), com busca por nome.
+- **Galeria** — upload de fotos (Firebase Storage) que aparecem
+  automaticamente na galeria da página Institucional, e remoção das fotos
+  já cadastradas.
+- **Assistente IA** — campo de texto livre com instruções extras que se
+  somam ao roteiro fixo do bot (tom de voz, destacar uma promoção etc.),
+  salvas no Firestore e lidas pela Netlify Function a cada conversa.
+
+Setup manual (uma vez só):
 
 1. No **Firebase Console → Authentication → Sign-in method**, habilitar o
    provedor **E-mail/senha**.
 2. Em **Authentication → Users → Add user**, criar o login de quem vai
    acessar o painel (e-mail + senha) — não existe cadastro público, só
    esse usuário criado manualmente consegue entrar.
-3. Aplicar as regras do Firestore do passo 5 acima (`read` só para
-   autenticado) — sem isso o dashboard carrega vazio mesmo logado.
+3. Aplicar as regras do Firestore e do Storage dos passos 5 e 6 acima —
+   sem isso o dashboard carrega vazio mesmo logado, e a galeria/assistente
+   não funcionam.
+4. Só para o editor de instruções do assistente: em **Firebase Console →
+   Configurações do projeto → Contas de serviço**, gerar uma nova chave
+   privada (baixa um `.json`). No Netlify, colar o conteúdo inteiro desse
+   arquivo (JSON em uma linha só) na variável de ambiente
+   `FIREBASE_SERVICE_ACCOUNT`. Sem essa variável, o bot funciona
+   normalmente — só ignora as instruções extras.
 
-O restante do painel (CRUD de serviços/profissionais, galeria de fotos,
-comportamento da IA) ainda não foi construído — só o dashboard existe até
-agora.
+CRUD de serviços/profissionais ainda não foi construído (ver
+`BRIEFING-REMOP.md`/backlog do projeto).
 
 ## Imagens pendentes (fotos reais)
 
