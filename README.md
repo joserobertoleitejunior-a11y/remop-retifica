@@ -20,6 +20,7 @@ assets/js/firebase-init.js     inicialização do Firebase (SDK client-side)
 assets/js/lead-form.js         grava agendamentos no Firestore + fallback WhatsApp
 assets/js/visitor-gate.js      portão de entrada — grava visitante (nome/whatsapp/carro) no Firestore
 assets/js/chat-widget.js       frontend do bot (com fallback quando a function não responde)
+assets/js/analytics.js         rastreamento leve: páginas vistas, cliques em CTAs e perguntas feitas ao bot
 assets/img/                    imagens (fotos reais + placeholders — ver lista abaixo)
 netlify/functions/chat-bot.js  backend do bot: chama a API da Anthropic (server-side)
 netlify.toml                   config de deploy pro Netlify (pronta, ainda não ativa)
@@ -52,13 +53,17 @@ por código — são ações de configuração no painel):
 4. Preencher a config pública do Firebase em `assets/js/config.js`
    (`window.REMOP_CONFIG.firebase`) com os valores reais do projeto Firebase
    — não é segredo, mas precisa ser o projeto certo.
-5. Configurar as regras do Firestore para as coleções `agendamentos` e
-   `visitantes` (permitir `create` público, bloquear `read`/`update`/`delete`
-   público em ambas — são a base de leads/clientes, não devem ficar
-   públicas pra leitura). Exemplo de regra:
+5. Configurar as regras do Firestore para as coleções `agendamentos`,
+   `visitantes`, `paginas_vistas`, `cliques` e `perguntas_ia` (permitir
+   `create` público, bloquear `read`/`update`/`delete` público em todas —
+   são a base de leads/clientes e analytics, não devem ficar públicas pra
+   leitura). Exemplo de regra:
    ```
-   match /agendamentos/{doc} { allow create: if true; allow read, update, delete: if false; }
-   match /visitantes/{doc}   { allow create: if true; allow read, update, delete: if false; }
+   match /agendamentos/{doc}  { allow create: if true; allow read, update, delete: if false; }
+   match /visitantes/{doc}    { allow create: if true; allow read, update, delete: if false; }
+   match /paginas_vistas/{doc} { allow create: if true; allow read, update, delete: if false; }
+   match /cliques/{doc}       { allow create: if true; allow read, update, delete: if false; }
+   match /perguntas_ia/{doc}  { allow create: if true; allow read, update, delete: if false; }
    ```
    Pra ver os dados depois (dashboard/mini perfil de clientes), acesse pelo
    Firebase Console ou construa um painel autenticado à parte — nunca deixe

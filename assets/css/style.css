@@ -416,6 +416,37 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 }
 
 /* ---------- Serviços ---------- */
+.caixa-pergunta-ia {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 640px;
+  margin: 0 auto 40px;
+  background: #fff;
+  border: 2px solid var(--cor-acento);
+  border-radius: 999px;
+  padding: 8px 8px 8px 20px;
+  box-shadow: var(--sombra-card);
+}
+.caixa-pergunta-ia__icone { width: 22px; height: 22px; color: var(--cor-acento-escuro); flex-shrink: 0; }
+.caixa-pergunta-ia input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  font-family: inherit;
+  padding: 10px 0;
+  background: none;
+}
+.caixa-pergunta-ia .botao { flex-shrink: 0; white-space: nowrap; }
+@media (max-width: 480px) {
+  .caixa-pergunta-ia { flex-wrap: wrap; border-radius: 20px; padding: 14px; }
+  .caixa-pergunta-ia__icone { order: 0; }
+  .caixa-pergunta-ia input { order: 1; flex-basis: 100%; padding: 6px 2px; }
+  .caixa-pergunta-ia .botao { order: 2; width: 100%; margin-top: 4px; }
+}
+
 .grid-servicos {
   display: grid;
   grid-template-columns: 1fr;

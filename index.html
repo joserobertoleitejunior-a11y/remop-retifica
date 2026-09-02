@@ -172,54 +172,61 @@
       <h2 class="secao__titulo">Nossos serviços</h2>
       <p class="secao__subtitulo">Avaliação técnica antes de qualquer orçamento. Fale com a gente e conte o que está acontecendo com o motor.</p>
 
+      <form class="caixa-pergunta-ia" data-pergunta-livre>
+        <svg class="caixa-pergunta-ia__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4A9 9 0 0 1 8 19l-5 1 1.4-4.3A8.4 8.4 0 1 1 21 11.5z"/></svg>
+        <label class="visually-hidden" for="pergunta-livre-input">Descreva aqui o que você precisa</label>
+        <input id="pergunta-livre-input" type="text" placeholder="Descreva aqui o que você precisa..." autocomplete="off" required>
+        <button class="botao botao--primario" type="submit">Perguntar</button>
+      </form>
+
       <div class="grid-servicos">
         <article class="card-servico">
           <svg class="card-servico__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
           <h3>Retífica de Cabeçote</h3>
           <p>Correção de empenamento, sedes de válvula e superfície de vedação para restaurar a compressão do motor.</p>
-          <a class="botao botao--outline" data-whatsapp-mensagem="Olá! Gostaria de consultar o valor da retífica de cabeçote." href="#" target="_blank" rel="noopener">Consultar valor</a>
+          <button class="botao botao--outline" type="button" data-consultar-servico="Retífica de Cabeçote">Consultar valor</button>
         </article>
 
         <article class="card-servico">
           <svg class="card-servico__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3v6l6 6 6-6V3"/><path d="M6 21v-6l6-6 6 6v6"/></svg>
           <h3>Retífica de Bielas</h3>
           <p>Alinhamento e ajuste de bielas para eliminar folgas e vibração, devolvendo precisão ao conjunto do motor.</p>
-          <a class="botao botao--outline" data-whatsapp-mensagem="Olá! Gostaria de consultar o valor da retífica de bielas." href="#" target="_blank" rel="noopener">Consultar valor</a>
+          <button class="botao botao--outline" type="button" data-consultar-servico="Retífica de Bielas">Consultar valor</button>
         </article>
 
         <article class="card-servico">
           <svg class="card-servico__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg>
           <h3>Retífica de Cilindro</h3>
           <p>Recuperação da superfície interna dos cilindros para restaurar a compressão e reduzir consumo de óleo.</p>
-          <a class="botao botao--outline" data-whatsapp-mensagem="Olá! Gostaria de consultar o valor da retífica de cilindro." href="#" target="_blank" rel="noopener">Consultar valor</a>
+          <button class="botao botao--outline" type="button" data-consultar-servico="Retífica de Cilindro">Consultar valor</button>
         </article>
 
         <article class="card-servico">
           <svg class="card-servico__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
           <h3>Manutenção e retífica de virabrequim</h3>
           <p>Ajuste de tolerâncias e recuperação dos munhões para eliminar folgas e prolongar a vida do motor.</p>
-          <a class="botao botao--outline" data-whatsapp-mensagem="Olá! Gostaria de consultar o valor da retífica de virabrequim." href="#" target="_blank" rel="noopener">Consultar valor</a>
+          <button class="botao botao--outline" type="button" data-consultar-servico="Manutenção e retífica de virabrequim">Consultar valor</button>
         </article>
 
         <article class="card-servico">
           <svg class="card-servico__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20h16M6 20V10l6-6 6 6v10"/></svg>
           <h3>Retoque e recuperação de bloco de motor</h3>
           <p>Correção de trincas, desgastes e desalinhamentos no bloco para garantir uma base sólida pro motor.</p>
-          <a class="botao botao--outline" data-whatsapp-mensagem="Olá! Gostaria de consultar o valor da recuperação de bloco de motor." href="#" target="_blank" rel="noopener">Consultar valor</a>
+          <button class="botao botao--outline" type="button" data-consultar-servico="Retoque e recuperação de bloco de motor">Consultar valor</button>
         </article>
 
         <article class="card-servico">
           <svg class="card-servico__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
           <h3>Usinagem para motores automotivos</h3>
           <p>Serviços de usinagem de precisão sob medida para peças e componentes do motor.</p>
-          <a class="botao botao--outline" data-whatsapp-mensagem="Olá! Gostaria de consultar o valor de usinagem para motores." href="#" target="_blank" rel="noopener">Consultar valor</a>
+          <button class="botao botao--outline" type="button" data-consultar-servico="Usinagem para motores automotivos">Consultar valor</button>
         </article>
 
         <article class="card-servico">
           <svg class="card-servico__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7l4-4 4 4M8 3v13a4 4 0 0 0 4 4h4"/></svg>
           <h3>Troca de correia dentada</h3>
           <p>Substituição preventiva da correia dentada e componentes associados, evitando quebra de motor.</p>
-          <a class="botao botao--outline" data-whatsapp-mensagem="Olá! Gostaria de consultar o valor da troca de correia dentada." href="#" target="_blank" rel="noopener">Consultar valor</a>
+          <button class="botao botao--outline" type="button" data-consultar-servico="Troca de correia dentada">Consultar valor</button>
         </article>
       </div>
     </div>
@@ -359,6 +366,7 @@
 
 <script src="assets/js/config.js"></script>
 <script src="assets/js/firebase-init.js"></script>
+<script src="assets/js/analytics.js"></script>
 <script src="assets/js/visitor-gate.js"></script>
 <script src="assets/js/lead-form.js"></script>
 <script src="assets/js/main.js"></script>

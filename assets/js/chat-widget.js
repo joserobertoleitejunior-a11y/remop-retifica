@@ -20,6 +20,8 @@
   var elementos = {};
   var modoFallbackAtivo = false;
   var diagnosticoResumo = null;
+  var servicoAtual = null;
+  var mensagemPendente = null;
 
   function criarBolha(texto, tipo) {
     var bolha = document.createElement("div");
@@ -114,6 +116,7 @@
         historico: historico,
         modo: modo,
         identidade: identidade,
+        servico: servicoAtual,
       }),
     });
 
@@ -159,14 +162,13 @@
     historico.push({ papel: "bot", texto: dados.resposta });
   }
 
-  async function tratarEnvio(evento) {
-    evento.preventDefault();
-    var texto = elementos.input.value.trim();
+  async function enviarTexto(texto) {
+    texto = (texto || "").trim();
     if (!texto || modoFallbackAtivo) return;
 
     adicionarMensagem(texto, "usuario");
     historico.push({ papel: "usuario", texto: texto });
-    elementos.input.value = "";
+    if (window.RemopAnalytics) window.RemopAnalytics.registrarPergunta(texto);
     elementos.enviar.disabled = true;
 
     var indicador = mostrarDigitando();
@@ -182,6 +184,14 @@
     } finally {
       elementos.enviar.disabled = false;
     }
+  }
+
+  function tratarEnvio(evento) {
+    evento.preventDefault();
+    var texto = elementos.input.value.trim();
+    if (!texto) return;
+    elementos.input.value = "";
+    enviarTexto(texto);
   }
 
   function iniciarConversa() {
@@ -207,24 +217,63 @@
 
     elementos.identidade.hidden = true;
     elementos.form.hidden = false;
-    iniciarConversa();
+
+    if (mensagemPendente) {
+      var texto = mensagemPendente;
+      mensagemPendente = null;
+      enviarTexto(texto);
+    } else {
+      iniciarConversa();
+    }
   }
 
-  function abrirPainel() {
+  function reiniciarConversa() {
+    historico = [];
+    diagnosticoResumo = null;
+    modoFallbackAtivo = false;
+    elementos.mensagens.innerHTML = "";
+    elementos.form.hidden = false;
+    elementos.fallback.hidden = true;
+  }
+
+  /**
+   * Abre o painel. Sem argumentos, é o atalho genérico do cabeçalho
+   * (fluxo de diagnóstico padrão). Com `servico` ou `mensagemInicial`,
+   * é um atalho específico (botão "Consultar valor" de um serviço, ou
+   * a caixa "Descreva aqui o que você precisa") — sempre começa uma
+   * conversa nova e já manda a primeira mensagem sozinho, sem esperar
+   * o cliente digitar de novo.
+   */
+  function abrirPainel(opcoes) {
+    opcoes = opcoes || {};
+
     elementos.painel.classList.add("aberto");
     document.querySelectorAll("[data-chat-abrir]").forEach(function (botao) {
       botao.setAttribute("aria-expanded", "true");
     });
 
-    if (elementos.painelIniciado) return;
+    var novoFluxo = !!(opcoes.mensagemInicial || opcoes.servico);
+    if (novoFluxo) {
+      reiniciarConversa();
+      servicoAtual = opcoes.servico || null;
+    }
+
+    if (elementos.painelIniciado && !novoFluxo) return;
     elementos.painelIniciado = true;
+
+    var mensagemAutomatica =
+      opcoes.mensagemInicial ||
+      (opcoes.servico ? "Quero consultar o valor de: " + opcoes.servico + "." : null);
 
     var identidade = (window.RemopIdentidade && window.RemopIdentidade.obter()) || {};
     if (!identidade.nome || !identidade.whatsapp) {
+      mensagemPendente = mensagemAutomatica;
       elementos.identidade.hidden = false;
       elementos.form.hidden = true;
       var primeiroCampo = elementos.identidade.querySelector("input");
       if (primeiroCampo) primeiroCampo.focus();
+    } else if (mensagemAutomatica) {
+      enviarTexto(mensagemAutomatica);
     } else {
       iniciarConversa();
     }
@@ -256,8 +305,25 @@
     };
 
     document.querySelectorAll("[data-chat-abrir]").forEach(function (botao) {
-      botao.addEventListener("click", abrirPainel);
+      botao.addEventListener("click", function () { abrirPainel(); });
     });
+    document.querySelectorAll("[data-consultar-servico]").forEach(function (botao) {
+      botao.addEventListener("click", function () {
+        abrirPainel({ servico: botao.getAttribute("data-consultar-servico") });
+      });
+    });
+    var perguntaLivre = document.querySelector("[data-pergunta-livre]");
+    if (perguntaLivre) {
+      perguntaLivre.addEventListener("submit", function (evento) {
+        evento.preventDefault();
+        var campo = perguntaLivre.querySelector("input");
+        var texto = campo.value.trim();
+        if (!texto) return;
+        campo.value = "";
+        abrirPainel({ mensagemInicial: texto });
+      });
+    }
+
     elementos.fechar.addEventListener("click", fecharPainel);
     elementos.form.addEventListener("submit", tratarEnvio);
     elementos.identidade.addEventListener("submit", tratarEnvioIdentidade);

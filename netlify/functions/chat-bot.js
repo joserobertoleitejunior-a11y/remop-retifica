@@ -73,6 +73,26 @@ function contextoIdentidade(identidade) {
 }
 
 /**
+ * Quando o cliente entrou pelo botão "Consultar valor" de um serviço
+ * específico (em vez do diagnóstico geral), ele já disse o que quer —
+ * o bot deve ser rápido e objetivo, tipo um mini-agendamento, e não
+ * repetir uma investigação ampla de sintomas.
+ */
+function contextoServico(servico) {
+  servico = String(servico || "").trim().slice(0, 120);
+  if (!servico) return "";
+
+  return (
+    "\n\nO cliente entrou querendo consultar o valor de: " + servico + ". " +
+    "Ele já sabe o que quer — não faça uma investigação ampla de sintomas. " +
+    "Seja rápido: confirme só o essencial (modelo e ano do carro, se ainda " +
+    "não souber) em no máximo 1-2 perguntas, e feche com [DIAGNOSTICO] " +
+    "recomendando avaliação desse serviço específico, com o resumo pronto " +
+    "pro WhatsApp."
+  );
+}
+
+/**
  * Extrai a tag do início da resposta e separa o resumo pra WhatsApp,
  * quando houver, deixando o texto limpo pra exibir pro cliente.
  */
@@ -144,7 +164,7 @@ exports.handler = async function (event) {
   const corpoRequisicao = {
     model: ANTHROPIC_MODEL,
     max_tokens: 600,
-    system: SYSTEM_PROMPT + contextoIdentidade(corpo.identidade),
+    system: SYSTEM_PROMPT + contextoIdentidade(corpo.identidade) + contextoServico(corpo.servico),
     messages: mensagens,
   };
 
