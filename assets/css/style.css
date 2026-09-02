@@ -397,13 +397,15 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   }
 }
 
-/* Faixa de ícones passando sobre a foto da fachada — fundo
-   transparente, só os ícones (contatos, redes sociais e o assistente
-   de IA) rolando em loop; cada um já é um link/atalho direto,
-   clicável, sem abrir popup nenhum. */
+/* Faixa de ícones sobre a foto da fachada — colada no topo da hero
+   (logo abaixo do cabeçalho), fundo transparente, só os ícones
+   (contatos, redes sociais e o assistente de IA) passando. Anda
+   sozinha e também pode ser arrastada com o dedo/mouse: solta com
+   velocidade e ela continua girando por inércia até desacelerar,
+   controlado via JS em main.js (iniciarFaixaArrastavel). */
 .hero__faixa-contatos {
   position: absolute;
-  top: 19%;
+  top: 6px;
   left: 0;
   right: 0;
   z-index: 2;
@@ -417,16 +419,12 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   gap: 34px;
   width: max-content;
   padding: 4px 0;
-  animation: faixa-rolar 26s linear infinite;
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
 }
-.hero__faixa-contatos:hover .hero__faixa-trilha,
-.hero__faixa-contatos:focus-within .hero__faixa-trilha {
-  animation-play-state: paused;
-}
-@keyframes faixa-rolar {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
+.hero__faixa-trilha.arrastando { cursor: grabbing; }
 .hero__faixa-icone {
   flex-shrink: 0;
   display: flex;
@@ -441,16 +439,10 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.65));
   transition: transform .2s var(--transicao-suave), color .2s var(--transicao-suave);
 }
-.hero__faixa-icone svg { width: 26px; height: 26px; }
+.hero__faixa-icone svg { width: 26px; height: 26px; pointer-events: none; }
 .hero__faixa-icone:hover, .hero__faixa-icone:focus-visible {
   color: var(--cor-acento);
   transform: translateY(-3px) scale(1.15);
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero__faixa-trilha { animation: none; }
-}
-@media (min-width: 900px) {
-  .hero__faixa-contatos { top: 5%; }
 }
 
 /* Hero das páginas secundárias (Institucional) — mesma receita da home,
