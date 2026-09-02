@@ -1,0 +1,23 @@
+# Configuração de deploy para quando o projeto migrar do GitHub Pages
+# pro Netlify. Site estático puro (sem build/bundler) — só publica a
+# raiz do repositório e ativa a pasta de Netlify Functions.
+
+[build]
+  publish = "."
+  command = "echo 'Site estático — nenhum build necessário'"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/chat-bot"
+  to = "/.netlify/functions/chat-bot"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

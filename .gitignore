@@ -1,0 +1,19 @@
+# Segredos — nunca commitar
+.env
+.env.*
+!.env.example
+
+# Dependências (caso algum dia rode ferramentas locais, ex. Netlify CLI)
+node_modules/
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Netlify CLI local
+.netlify/
