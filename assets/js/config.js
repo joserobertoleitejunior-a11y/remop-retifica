@@ -1,7 +1,7 @@
 /**
  * Configuração central do site Remop Retífica.
  * Único lugar a editar quando o número de WhatsApp, o endpoint do bot
- * ou as credenciais públicas do Firebase mudarem.
+ * ou as credenciais públicas do Supabase mudarem.
  */
 window.REMOP_CONFIG = {
   // Número encontrado via busca (SoluTudo + diretórios de empresas,
@@ -19,16 +19,13 @@ window.REMOP_CONFIG = {
   // com a Netlify Function configurada e ANTHROPIC_API_KEY definida.
   chatBotEndpoint: "/.netlify/functions/chat-bot",
 
-  // Config pública do Firebase (SDK client-side). Não é segredo — a
-  // segurança dos dados é garantida pelas regras do Firestore, não por
-  // esconder estes valores. Preencher com o projeto real antes de usar
-  // o formulário de agendamento em produção.
-  firebase: {
-    apiKey: "SUBSTITUIR_FIREBASE_API_KEY",
-    authDomain: "SUBSTITUIR.firebaseapp.com",
-    projectId: "SUBSTITUIR_PROJECT_ID",
-    storageBucket: "SUBSTITUIR.appspot.com",
-    messagingSenderId: "SUBSTITUIR_SENDER_ID",
-    appId: "SUBSTITUIR_APP_ID",
+  // Config pública do Supabase (SDK client-side). Não é segredo — a
+  // "anon key" é feita pra ficar exposta no navegador; a segurança dos
+  // dados é garantida pelas políticas de RLS (Row Level Security) do
+  // banco, não por esconder estes valores. Preencher com o projeto real
+  // antes de usar o formulário de agendamento em produção (ver README).
+  supabase: {
+    url: "SUBSTITUIR_SUPABASE_URL",
+    anonKey: "SUBSTITUIR_SUPABASE_ANON_KEY",
   },
 };

@@ -1,8 +1,8 @@
 {
   "name": "remop-retifica",
   "private": true,
-  "description": "Site estático da Remop Retífica de Motores — dependências usadas só pela Netlify Function do assistente de IA.",
+  "description": "Site estático da Remop Retífica de Motores — dependência usada só pela Netlify Function do assistente de IA.",
   "dependencies": {
-    "firebase-admin": "^12.6.0"
+    "@supabase/supabase-js": "^2.45.4"
   }
 }

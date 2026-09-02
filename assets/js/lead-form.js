@@ -1,7 +1,7 @@
 /**
  * Formulário de agendamento de avaliação.
- * Salva o lead no Firestore (coleção "agendamentos") quando o Firebase
- * está configurado; sempre oferece o fallback direto pro WhatsApp.
+ * Salva o lead no Supabase (tabela "agendamentos") quando está
+ * configurado; sempre oferece o fallback direto pro WhatsApp.
  */
 (function () {
   "use strict";
@@ -21,19 +21,20 @@
     );
   }
 
-  async function salvarNoFirestore(dados) {
-    var firebaseInfo = window.RemopFirebase;
-    if (!firebaseInfo || !firebaseInfo.pronto) return false;
+  async function salvarNoSupabase(dados) {
+    var supabaseInfo = window.RemopSupabase;
+    if (!supabaseInfo || !supabaseInfo.pronto) return false;
 
-    await firebaseInfo.db.collection("agendamentos").add({
+    var resultado = await supabaseInfo.client.from("agendamentos").insert({
       nome: dados.nome,
       telefone: dados.telefone,
       servico: dados.servico,
       mensagem: dados.mensagem || "",
       origem: "site",
       status: "novo",
-      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      pagina: location.pathname,
     });
+    if (resultado.error) throw resultado.error;
     return true;
   }
 
@@ -62,7 +63,7 @@
       if (botaoEnviar) botaoEnviar.disabled = true;
 
       try {
-        var salvou = await salvarNoFirestore(dados);
+        var salvou = await salvarNoSupabase(dados);
         exibirStatus(
           statusEl,
           salvou
@@ -71,7 +72,7 @@
           "sucesso"
         );
       } catch (erro) {
-        console.error("[Remop] Falha ao salvar agendamento no Firestore:", erro);
+        console.error("[Remop] Falha ao salvar agendamento no Supabase:", erro);
         exibirStatus(
           statusEl,
           "Não conseguimos salvar automaticamente, mas você pode continuar direto no WhatsApp.",

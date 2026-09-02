@@ -1,6 +1,6 @@
 /**
  * Portão de entrada: pede nome, WhatsApp, modelo e ano do carro antes
- * de liberar o site, e salva no Firestore (coleção "visitantes") pra
+ * de liberar o site, e salva no Supabase (tabela "visitantes") pra
  * virar base de clientes / dashboard no futuro.
  *
  * Uma vez preenchido, o navegador lembra (localStorage) e não pede de
@@ -61,17 +61,18 @@
   }
 
   async function salvarVisitante(dados) {
-    var firebaseInfo = window.RemopFirebase;
-    if (!firebaseInfo || !firebaseInfo.pronto) return false;
+    var supabaseInfo = window.RemopSupabase;
+    if (!supabaseInfo || !supabaseInfo.pronto) return false;
 
-    await firebaseInfo.db.collection("visitantes").add({
+    var resultado = await supabaseInfo.client.from("visitantes").insert({
       nome: dados.nome,
       whatsapp: dados.whatsapp,
-      modeloCarro: dados.modelo || "",
-      anoCarro: dados.ano || "",
+      modelo_carro: dados.modelo || "",
+      ano_carro: dados.ano || "",
       origem: "portao-entrada",
-      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      pagina: location.pathname,
     });
+    if (resultado.error) throw resultado.error;
     return true;
   }
 

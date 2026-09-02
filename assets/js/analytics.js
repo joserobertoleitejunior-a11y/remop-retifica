@@ -1,10 +1,10 @@
 /**
  * Rastreamento leve de uso do site — visitas por página, cliques nos
- * principais CTAs e perguntas feitas ao bot. Alimenta o futuro painel
+ * principais CTAs e perguntas feitas ao bot. Alimenta o painel
  * administrativo (dashboard).
  *
- * Só grava quando o Firebase estiver configurado (mesmo padrão do resto
- * do site — ver firebase-init.js); se não estiver, não faz nada e nunca
+ * Só grava quando o Supabase estiver configurado (mesmo padrão do resto
+ * do site — ver supabase-init.js); se não estiver, não faz nada e nunca
  * trava a navegação por causa disso.
  */
 (function () {
@@ -25,23 +25,22 @@
     }
   }
 
-  async function registrar(colecao, dados) {
-    var firebaseInfo = window.RemopFirebase;
-    if (!firebaseInfo || !firebaseInfo.pronto) return;
+  async function registrar(tabela, dados) {
+    var supabaseInfo = window.RemopSupabase;
+    if (!supabaseInfo || !supabaseInfo.pronto) return;
 
     try {
-      await firebaseInfo.db.collection(colecao).add(
-        Object.assign(
-          {
-            pagina: location.pathname,
-            visitanteId: obterVisitanteId(),
-            criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-          },
-          dados
-        )
+      var linha = Object.assign(
+        {
+          pagina: location.pathname,
+          visitante_id: obterVisitanteId(),
+        },
+        dados
       );
+      var resultado = await supabaseInfo.client.from(tabela).insert(linha);
+      if (resultado.error) throw resultado.error;
     } catch (erro) {
-      console.warn("[Remop] Não deu pra registrar analytics (" + colecao + "):", erro);
+      console.warn("[Remop] Não deu pra registrar analytics (" + tabela + "):", erro);
     }
   }
 

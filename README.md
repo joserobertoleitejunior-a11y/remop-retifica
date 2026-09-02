@@ -13,12 +13,12 @@ localizacao.html                endereço/mapa/horário e formas de pagamento
 
 assets/css/style.css           estilos gerais, mobile-first
 assets/css/chat-widget.css     estilos do widget de atendimento
-assets/js/config.js            único ponto de config: WhatsApp, endpoint do bot, Firebase
+assets/js/config.js            único ponto de config: WhatsApp, endpoint do bot, Supabase
 assets/js/main.js              menu mobile, links de WhatsApp, modal de agendamento
 assets/js/scroll-reveal.js     animações de entrada ao rolar (GSAP + ScrollTrigger)
-assets/js/firebase-init.js     inicialização do Firebase (SDK client-side)
-assets/js/lead-form.js         grava agendamentos no Firestore + fallback WhatsApp
-assets/js/visitor-gate.js      portão de entrada — grava visitante (nome/whatsapp/carro) no Firestore
+assets/js/supabase-init.js     inicialização do Supabase (SDK client-side)
+assets/js/lead-form.js         grava agendamentos no Supabase + fallback WhatsApp
+assets/js/visitor-gate.js      portão de entrada — grava visitante (nome/whatsapp/carro) no Supabase
 assets/js/chat-widget.js       frontend do bot (com fallback quando a function não responde)
 assets/js/analytics.js         rastreamento leve: páginas vistas, cliques em CTAs e perguntas feitas ao bot
 assets/js/galeria.js           acrescenta na galeria do institucional as fotos cadastradas pelo admin
@@ -26,9 +26,9 @@ assets/css/admin.css           estilos do painel administrativo
 assets/js/admin.js             login + dashboard, Clientes, Galeria e Assistente IA do painel administrativo
 admin.html                     painel administrativo completo (login restrito)
 assets/img/                    imagens (fotos reais + placeholders — ver lista abaixo)
-netlify/functions/chat-bot.js  backend do bot: chama a API da Anthropic + lê instruções extras (firebase-admin)
+netlify/functions/chat-bot.js  backend do bot: chama a API da Anthropic + lê instruções extras (@supabase/supabase-js)
 netlify.toml                   config de deploy pro Netlify (pronta, ainda não ativa)
-package.json                   só a dependência firebase-admin, usada pela function do bot
+package.json                   só a dependência @supabase/supabase-js, usada pela function do bot
 .env.example                   variáveis necessárias (nunca commitar .env real)
 robots.txt / sitemap.xml       SEO técnico (as 3 páginas listadas)
 ```
@@ -55,42 +55,143 @@ por código — são ações de configuração no painel):
    `netlify/functions` (já configurado em `netlify.toml`).
 3. Em **Site settings → Environment variables**, adicionar:
    - `ANTHROPIC_API_KEY` — chave real da API da Anthropic.
-   - `FIREBASE_SERVICE_ACCOUNT` — opcional, só se for usar o editor de
-     "Instruções extras" do assistente (ver seção do painel admin abaixo).
-4. Preencher a config pública do Firebase em `assets/js/config.js`
-   (`window.REMOP_CONFIG.firebase`) com os valores reais do projeto Firebase
-   — não é segredo, mas precisa ser o projeto certo.
-5. Configurar as regras do Firestore. `agendamentos`, `visitantes`,
-   `paginas_vistas`, `cliques` e `perguntas_ia` continuam com `create`
-   público (o site grava sem estar logado) e `read`/`update`/`delete` só
-   para autenticado — nunca deixe a leitura pública dessas coleções, são a
-   base de leads/clientes e analytics. `galeria` e `config` (usadas pelo
-   painel admin) são o oposto: `read` público (o site precisa ler pra
-   mostrar a galeria e as instruções do assistente sem estar logado), mas
-   só o admin autenticado pode escrever:
+   - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` — opcionais, só se for
+     usar o editor de "Instruções extras" do assistente (ver seção do
+     painel admin abaixo). A service role key fica só no backend, nunca
+     no frontend — ela ignora as políticas de RLS.
+4. Criar um projeto em [supabase.com](https://supabase.com) (plano
+   gratuito é suficiente pra começar).
+5. Rodar o schema abaixo no **SQL Editor** do Supabase — cria as tabelas e
+   já deixa o RLS (Row Level Security) configurado do jeito certo:
+   `agendamentos`, `visitantes`, `paginas_vistas`, `cliques` e
+   `perguntas_ia` recebem escrita pública (o site grava sem estar logado)
+   e leitura só autenticada — nunca deixe a leitura pública dessas
+   tabelas, são a base de leads/clientes e analytics. `galeria` e
+   `config_assistente` (usadas pelo painel admin) são o oposto: leitura
+   pública (o site precisa ler pra mostrar a galeria e as instruções do
+   assistente sem estar logado), escrita só autenticada:
+   ```sql
+   -- Tabelas
+   create table visitantes (
+     id bigint generated always as identity primary key,
+     nome text not null,
+     whatsapp text not null,
+     modelo_carro text default '',
+     ano_carro text default '',
+     origem text default '',
+     pagina text default '',
+     criado_em timestamptz not null default now()
+   );
+
+   create table agendamentos (
+     id bigint generated always as identity primary key,
+     nome text not null,
+     telefone text not null,
+     servico text default '',
+     mensagem text default '',
+     origem text default '',
+     status text default 'novo',
+     pagina text default '',
+     criado_em timestamptz not null default now()
+   );
+
+   create table paginas_vistas (
+     id bigint generated always as identity primary key,
+     pagina text default '',
+     referencia text default '',
+     visitante_id text default '',
+     criado_em timestamptz not null default now()
+   );
+
+   create table cliques (
+     id bigint generated always as identity primary key,
+     tipo text default '',
+     detalhe text default '',
+     pagina text default '',
+     visitante_id text default '',
+     criado_em timestamptz not null default now()
+   );
+
+   create table perguntas_ia (
+     id bigint generated always as identity primary key,
+     texto text default '',
+     pagina text default '',
+     visitante_id text default '',
+     criado_em timestamptz not null default now()
+   );
+
+   create table galeria (
+     id bigint generated always as identity primary key,
+     url text not null,
+     alt text default '',
+     ordem integer default 0,
+     storage_path text default '',
+     criado_em timestamptz not null default now()
+   );
+
+   create table config_assistente (
+     id integer primary key,
+     instrucoes_extras text default '',
+     atualizado_em timestamptz not null default now()
+   );
+
+   -- RLS: leads/analytics — escrita pública, leitura só autenticada
+   alter table visitantes enable row level security;
+   alter table agendamentos enable row level security;
+   alter table paginas_vistas enable row level security;
+   alter table cliques enable row level security;
+   alter table perguntas_ia enable row level security;
+
+   create policy "criacao publica" on visitantes for insert to anon with check (true);
+   create policy "leitura autenticada" on visitantes for select to authenticated using (true);
+
+   create policy "criacao publica" on agendamentos for insert to anon with check (true);
+   create policy "leitura autenticada" on agendamentos for select to authenticated using (true);
+
+   create policy "criacao publica" on paginas_vistas for insert to anon with check (true);
+   create policy "leitura autenticada" on paginas_vistas for select to authenticated using (true);
+
+   create policy "criacao publica" on cliques for insert to anon with check (true);
+   create policy "leitura autenticada" on cliques for select to authenticated using (true);
+
+   create policy "criacao publica" on perguntas_ia for insert to anon with check (true);
+   create policy "leitura autenticada" on perguntas_ia for select to authenticated using (true);
+
+   -- RLS: galeria/config do painel admin — leitura pública, escrita só autenticada
+   alter table galeria enable row level security;
+   alter table config_assistente enable row level security;
+
+   create policy "leitura publica" on galeria for select using (true);
+   create policy "escrita autenticada" on galeria for all to authenticated using (true) with check (true);
+
+   create policy "leitura publica" on config_assistente for select using (true);
+   create policy "escrita autenticada" on config_assistente for all to authenticated using (true) with check (true);
    ```
-   match /agendamentos/{doc}   { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
-   match /visitantes/{doc}     { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
-   match /paginas_vistas/{doc} { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
-   match /cliques/{doc}        { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
-   match /perguntas_ia/{doc}   { allow create: if true; allow read: if request.auth != null; allow update, delete: if false; }
-   match /galeria/{doc}        { allow read: if true; allow write: if request.auth != null; }
-   match /config/{doc}         { allow read: if true; allow write: if request.auth != null; }
+6. Em **Storage**, criar um bucket chamado `galeria` com a opção
+   **Public bucket** ativada (assim as fotos abrem direto pela URL
+   pública, sem precisar de token). Depois, no **SQL Editor**, aplicar as
+   políticas que restringem quem pode enviar/remover foto (a leitura já é
+   pública por causa do bucket):
+   ```sql
+   create policy "upload autenticado galeria" on storage.objects
+     for insert to authenticated with check (bucket_id = 'galeria');
+   create policy "remocao autenticada galeria" on storage.objects
+     for delete to authenticated using (bucket_id = 'galeria');
    ```
-6. Configurar as regras do Firebase Storage (upload de fotos da galeria) —
-   leitura pública, escrita só autenticada:
-   ```
-   match /galeria/{arquivo} { allow read: if true; allow write: if request.auth != null; }
-   ```
-7. Conectar o domínio real (`remopretifica.com.br` ou equivalente) em
-   **Domain settings**.
-8. Depois de migrar, atualizar `robots.txt`, `sitemap.xml` e as tags
+7. Preencher a config pública do Supabase em `assets/js/config.js`
+   (`window.REMOP_CONFIG.supabase.url` e `.anonKey`) com os valores reais
+   do projeto — pegue em **Project Settings → API**. A anon key não é
+   segredo (é feita pra ficar exposta no navegador); a segurança é
+   garantida pelas políticas de RLS acima, não por escondê-la.
+8. Conectar o domínio real (`remopretifica.com.br` ou equivalente) em
+   **Domain settings** do Netlify.
+9. Depois de migrar, atualizar `robots.txt`, `sitemap.xml` e as tags
    `canonical`/Open Graph em `index.html` para usar o domínio final em vez
    da URL do GitHub Pages.
 
 Nenhuma chave real deve ser colocada em código — a function já usa
-`process.env.ANTHROPIC_API_KEY` e `process.env.FIREBASE_SERVICE_ACCOUNT`
-sem valor hardcoded.
+`process.env.ANTHROPIC_API_KEY`, `process.env.SUPABASE_URL` e
+`process.env.SUPABASE_SERVICE_ROLE_KEY` sem valor hardcoded.
 
 ## Painel administrativo (`admin.html`)
 
@@ -98,43 +199,44 @@ Painel completo, protegido por login, com quatro abas:
 
 - **Dashboard** — visitantes do portão, agendamentos, cliques nos principais
   CTAs (com uma tabela de cliques agrupados por página) e perguntas feitas
-  ao bot, tudo com dados reais do Firestore.
+  ao bot, tudo com dados reais do Supabase.
 - **Clientes** — tabela completa de agendamentos e de visitantes do portão
   (todos os campos: nome, WhatsApp/telefone, carro, serviço, mensagem,
   status, página, data), com busca por nome.
-- **Galeria** — upload de fotos (Firebase Storage) que aparecem
+- **Galeria** — upload de fotos (Supabase Storage) que aparecem
   automaticamente na galeria da página Institucional, e remoção das fotos
   já cadastradas.
 - **Assistente IA** — campo de texto livre com instruções extras que se
   somam ao roteiro fixo do bot (tom de voz, destacar uma promoção etc.),
-  salvas no Firestore e lidas pela Netlify Function a cada conversa.
+  salvas no Supabase e lidas pela Netlify Function a cada conversa.
 
 Setup manual (uma vez só):
 
-1. No **Firebase Console → Authentication → Sign-in method**, habilitar o
-   provedor **E-mail/senha**.
-2. Em **Authentication → Users → Add user**, criar o login de quem vai
-   acessar o painel — não existe cadastro público, só esse usuário criado
-   manualmente consegue entrar. O login da equipe é só um PIN numérico
-   (`assets/js/admin.js`), mas o Firebase por baixo dos panos exige um
-   e-mail e uma senha de pelo menos 6 caracteres — então cadastre:
+1. No **Supabase → Authentication → Users**, clicar em **Add user** pra
+   criar o login de quem vai acessar o painel — não existe cadastro
+   público, só esse usuário criado manualmente consegue entrar. O login
+   da equipe é só um PIN numérico (`assets/js/admin.js`), mas o Supabase
+   por baixo dos panos exige um e-mail e uma senha de pelo menos 6
+   caracteres — então cadastre:
    - **E-mail**: `painel@remop-retifica.internal`
    - **Senha**: o PIN + o sufixo fixo que está em `SUFIXO_SENHA_PIN` no
      topo de `assets/js/admin.js`. Com o PIN padrão `5786` e o sufixo
      padrão do código, a senha a cadastrar é `5786-RemopPainel2026!`.
+   - Marcar **Auto Confirm User** ao criar (senão o Supabase espera
+     confirmação por e-mail, e esse e-mail interno não existe de verdade).
    - Pra trocar o PIN: mude o que a equipe digita, sem mexer em código —
-     é só criar/editar o usuário no Firebase Console com uma senha nova
+     é só editar a senha desse usuário no Supabase com um valor novo
      terminando no mesmo sufixo (ex.: PIN `1234` → senha
      `1234-RemopPainel2026!`).
-3. Aplicar as regras do Firestore e do Storage dos passos 5 e 6 acima —
-   sem isso o dashboard carrega vazio mesmo logado, e a galeria/assistente
-   não funcionam.
-4. Só para o editor de instruções do assistente: em **Firebase Console →
-   Configurações do projeto → Contas de serviço**, gerar uma nova chave
-   privada (baixa um `.json`). No Netlify, colar o conteúdo inteiro desse
-   arquivo (JSON em uma linha só) na variável de ambiente
-   `FIREBASE_SERVICE_ACCOUNT`. Sem essa variável, o bot funciona
-   normalmente — só ignora as instruções extras.
+2. Já ter rodado o schema SQL e as políticas de RLS/Storage dos passos 5
+   e 6 acima — sem isso o dashboard carrega vazio mesmo logado, e a
+   galeria/assistente não funcionam.
+3. Só para o editor de instruções do assistente: em **Project Settings →
+   API**, copiar a **service_role key** (é secreta — nunca vai no
+   frontend). No Netlify, colar essa chave na variável de ambiente
+   `SUPABASE_SERVICE_ROLE_KEY`, e a URL do projeto em `SUPABASE_URL`.
+   Sem essas variáveis, o bot funciona normalmente — só ignora as
+   instruções extras.
 
 CRUD de serviços/profissionais ainda não foi construído (ver
 `BRIEFING-REMOP.md`/backlog do projeto).

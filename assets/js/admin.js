@@ -1,25 +1,26 @@
 /**
- * Painel administrativo — login por PIN (Firebase Auth por baixo dos
+ * Painel administrativo — login por PIN (Supabase Auth por baixo dos
  * panos) + dashboard (Chart.js) + Clientes + Galeria + Assistente IA,
- * com dados reais das coleções que assets/js/analytics.js,
- * visitor-gate.js, lead-form.js e o próprio painel gravam no Firestore.
+ * com dados reais das tabelas que assets/js/analytics.js,
+ * visitor-gate.js, lead-form.js e o próprio painel gravam no Supabase.
  *
- * Login por PIN: o Firebase Auth continua sendo o mecanismo real por
- * trás (é o que autoriza a leitura protegida no Firestore/Storage), mas
- * a equipe só digita um PIN numérico curto — o painel completa esse PIN
- * com um sufixo fixo antes de mandar pro Firebase, porque o Firebase
- * exige senha de pelo menos 6 caracteres. Ver README.md pra saber qual
- * e-mail/senha cadastrar no Firebase Console → Authentication.
+ * Login por PIN: o Supabase Auth continua sendo o mecanismo real por
+ * trás (é o que autoriza a leitura protegida pelas políticas de RLS),
+ * mas a equipe só digita um PIN numérico curto — o painel completa
+ * esse PIN com um sufixo fixo antes de mandar pro Supabase, porque o
+ * Supabase exige senha de pelo menos 6 caracteres. Ver README.md pra
+ * saber qual e-mail/senha cadastrar no Supabase.
  *
- * Pré-requisito (feito uma vez, fora do código): criar esse usuário em
- * Firebase Console → Authentication → Add user, e ajustar as regras do
- * Firestore/Storage (ver README.md).
+ * Pré-requisito (feito uma vez, fora do código): criar esse usuário no
+ * Supabase (Authentication → Users → Add user), rodar o schema SQL e
+ * as políticas de RLS/Storage (ver README.md).
  */
 (function () {
   "use strict";
 
   var PAINEL_EMAIL_FIXO = "painel@remop-retifica.internal";
   var SUFIXO_SENHA_PIN = "-RemopPainel2026!";
+  var BUCKET_GALERIA = "galeria";
 
   var CORES = {
     visitantes: "#1E2E63",
@@ -40,6 +41,10 @@
   var seriesAtivas = { visitantes: true, agendamentos: true, cliques: true, perguntas: true };
   var secoesCarregadas = {};
 
+  function cliente() {
+    return window.RemopSupabase.client;
+  }
+
   function rotuloPagina(caminho) {
     if (!caminho) return "–";
     var limpo = caminho.split("?")[0];
@@ -50,8 +55,8 @@
     return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
   }
 
-  function formatarDataHora(campo) {
-    return campo && campo.toDate ? campo.toDate().toLocaleString("pt-BR") : "–";
+  function formatarDataHora(valor) {
+    return valor ? new Date(valor).toLocaleString("pt-BR") : "–";
   }
 
   function gerarFaixaDeDias(quantidade) {
@@ -66,28 +71,27 @@
     return dias;
   }
 
-  async function buscarColecao(db, nome, desde) {
-    var query = db.collection(nome);
-    if (desde) query = query.where("criadoEm", ">=", desde);
-    var snap = await query.get();
-    return snap.docs.map(function (doc) {
-      return Object.assign({ _id: doc.id }, doc.data());
-    });
+  async function buscarTabela(tabela, desde) {
+    var query = cliente().from(tabela).select("*");
+    if (desde) query = query.gte("criado_em", desde.toISOString());
+    var resultado = await query;
+    if (resultado.error) throw resultado.error;
+    return resultado.data || [];
   }
 
-  function ordenarPorDataDesc(docs) {
-    return docs.slice().sort(function (a, b) {
-      var ta = a.criadoEm && a.criadoEm.toDate ? a.criadoEm.toDate().getTime() : 0;
-      var tb = b.criadoEm && b.criadoEm.toDate ? b.criadoEm.toDate().getTime() : 0;
+  function ordenarPorDataDesc(linhas) {
+    return linhas.slice().sort(function (a, b) {
+      var ta = a.criado_em ? new Date(a.criado_em).getTime() : 0;
+      var tb = b.criado_em ? new Date(b.criado_em).getTime() : 0;
       return tb - ta;
     });
   }
 
-  function contarPorDia(docs, dias) {
+  function contarPorDia(linhas, dias) {
     var contagem = dias.map(function () { return 0; });
-    docs.forEach(function (doc) {
-      if (!doc.criadoEm || !doc.criadoEm.toDate) return;
-      var data = doc.criadoEm.toDate();
+    linhas.forEach(function (linha) {
+      if (!linha.criado_em) return;
+      var data = new Date(linha.criado_em);
       data.setHours(0, 0, 0, 0);
       dias.forEach(function (dia, indice) {
         if (data.getTime() === dia.getTime()) contagem[indice]++;
@@ -178,15 +182,15 @@
     });
   }
 
-  function preencherTabelaPerguntas(docs) {
+  function preencherTabelaPerguntas(linhas) {
     var corpo = elementos.painel.querySelector("[data-tabela-perguntas] tbody");
     corpo.innerHTML = "";
 
-    ordenarPorDataDesc(docs)
+    ordenarPorDataDesc(linhas)
       .slice(0, 25)
-      .forEach(function (doc) {
+      .forEach(function (linha) {
         var tr = document.createElement("tr");
-        [formatarDataHora(doc.criadoEm), rotuloPagina(doc.pagina), doc.texto || ""].forEach(function (texto) {
+        [formatarDataHora(linha.criado_em), rotuloPagina(linha.pagina), linha.texto || ""].forEach(function (texto) {
           var td = document.createElement("td");
           td.textContent = texto;
           tr.appendChild(td);
@@ -195,21 +199,21 @@
       });
   }
 
-  function preencherCliquesPorPagina(docs) {
+  function preencherCliquesPorPagina(linhas) {
     var corpo = elementos.painel.querySelector("[data-tabela-cliques-pagina] tbody");
     corpo.innerHTML = "";
 
     var contagem = {};
-    docs.forEach(function (doc) {
-      var chave = rotuloPagina(doc.pagina);
+    linhas.forEach(function (linha) {
+      var chave = rotuloPagina(linha.pagina);
       contagem[chave] = (contagem[chave] || 0) + 1;
     });
 
-    var linhas = Object.keys(contagem)
+    var itens = Object.keys(contagem)
       .map(function (pagina) { return { pagina: pagina, total: contagem[pagina] }; })
       .sort(function (a, b) { return b.total - a.total; });
 
-    if (!linhas.length) {
+    if (!itens.length) {
       var trVazia = document.createElement("tr");
       var tdVazia = document.createElement("td");
       tdVazia.colSpan = 2;
@@ -219,12 +223,12 @@
       return;
     }
 
-    linhas.forEach(function (linha) {
+    itens.forEach(function (item) {
       var tr = document.createElement("tr");
       var tdPagina = document.createElement("td");
-      tdPagina.textContent = linha.pagina;
+      tdPagina.textContent = item.pagina;
       var tdTotal = document.createElement("td");
-      tdTotal.textContent = linha.total;
+      tdTotal.textContent = item.total;
       tr.appendChild(tdPagina);
       tr.appendChild(tdTotal);
       corpo.appendChild(tr);
@@ -232,16 +236,15 @@
   }
 
   async function carregarDados() {
-    var db = window.RemopFirebase.db;
     var periodoDias = parseInt(elementos.periodo.value, 10) || 30;
     var dias = gerarFaixaDeDias(periodoDias);
-    var desde = firebase.firestore.Timestamp.fromDate(dias[0]);
+    var desde = dias[0];
 
     var resultados = await Promise.all([
-      buscarColecao(db, "visitantes", desde),
-      buscarColecao(db, "agendamentos", desde),
-      buscarColecao(db, "cliques", desde),
-      buscarColecao(db, "perguntas_ia", desde),
+      buscarTabela("visitantes", desde),
+      buscarTabela("agendamentos", desde),
+      buscarTabela("cliques", desde),
+      buscarTabela("perguntas_ia", desde),
     ]);
     var visitantes = resultados[0];
     var agendamentos = resultados[1];
@@ -304,16 +307,16 @@
     var corpoAgendamentos = elementos.painel.querySelector("[data-tabela-agendamentos] tbody");
     corpoAgendamentos.innerHTML = "";
     ordenarPorDataDesc(clientesCache.agendamentos)
-      .filter(function (doc) { return !filtro || (doc.nome || "").toLowerCase().indexOf(filtro) !== -1; })
-      .forEach(function (doc) {
+      .filter(function (linha) { return !filtro || (linha.nome || "").toLowerCase().indexOf(filtro) !== -1; })
+      .forEach(function (linha) {
         corpoAgendamentos.appendChild(
           linhaTabela([
-            formatarDataHora(doc.criadoEm),
-            doc.nome || "–",
-            doc.telefone || "–",
-            doc.servico || "–",
-            doc.mensagem || "–",
-            doc.status || "novo",
+            formatarDataHora(linha.criado_em),
+            linha.nome || "–",
+            linha.telefone || "–",
+            linha.servico || "–",
+            linha.mensagem || "–",
+            linha.status || "novo",
           ])
         );
       });
@@ -321,27 +324,26 @@
     var corpoVisitantes = elementos.painel.querySelector("[data-tabela-visitantes] tbody");
     corpoVisitantes.innerHTML = "";
     ordenarPorDataDesc(clientesCache.visitantes)
-      .filter(function (doc) { return !filtro || (doc.nome || "").toLowerCase().indexOf(filtro) !== -1; })
-      .forEach(function (doc) {
+      .filter(function (linha) { return !filtro || (linha.nome || "").toLowerCase().indexOf(filtro) !== -1; })
+      .forEach(function (linha) {
         corpoVisitantes.appendChild(
           linhaTabela([
-            formatarDataHora(doc.criadoEm),
-            doc.nome || "–",
-            doc.whatsapp || "–",
-            doc.modeloCarro || "–",
-            doc.anoCarro || "–",
-            rotuloPagina(doc.pagina),
+            formatarDataHora(linha.criado_em),
+            linha.nome || "–",
+            linha.whatsapp || "–",
+            linha.modelo_carro || "–",
+            linha.ano_carro || "–",
+            rotuloPagina(linha.pagina),
           ])
         );
       });
   }
 
   async function carregarClientes() {
-    var db = window.RemopFirebase.db;
     try {
       var resultados = await Promise.all([
-        buscarColecao(db, "agendamentos", null),
-        buscarColecao(db, "visitantes", null),
+        buscarTabela("agendamentos", null),
+        buscarTabela("visitantes", null),
       ]);
       clientesCache.agendamentos = resultados[0];
       clientesCache.visitantes = resultados[1];
@@ -405,9 +407,8 @@
   }
 
   async function carregarGaleria() {
-    var db = window.RemopFirebase.db;
     try {
-      var fotos = await buscarColecao(db, "galeria", null);
+      var fotos = await buscarTabela("galeria", null);
       renderizarGaleria(fotos);
     } catch (erro) {
       console.error("[Remop Admin] Falha ao carregar a galeria:", erro);
@@ -415,13 +416,13 @@
   }
 
   async function removerFotoGaleria(foto) {
-    if (!window.confirm('Remover a foto "' + (foto.alt || foto._id) + '"?')) return;
-    var firebaseInfo = window.RemopFirebase;
+    if (!window.confirm('Remover a foto "' + (foto.alt || foto.id) + '"?')) return;
     try {
-      if (foto.storagePath && firebaseInfo.storage) {
-        await firebaseInfo.storage.ref(foto.storagePath).delete();
+      if (foto.storage_path) {
+        await cliente().storage.from(BUCKET_GALERIA).remove([foto.storage_path]);
       }
-      await firebaseInfo.db.collection("galeria").doc(foto._id).delete();
+      var resultado = await cliente().from("galeria").delete().eq("id", foto.id);
+      if (resultado.error) throw resultado.error;
       carregarGaleria();
     } catch (erro) {
       console.error("[Remop Admin] Falha ao remover foto:", erro);
@@ -441,36 +442,29 @@
       return;
     }
 
-    var firebaseInfo = window.RemopFirebase;
-    if (!firebaseInfo.storage) {
-      exibirStatus(
-        statusEl,
-        "Firebase Storage não está configurado neste ambiente (veja o README).",
-        "erro"
-      );
-      return;
-    }
-
     var botaoEnviar = formulario.querySelector('[type="submit"]');
     botaoEnviar.disabled = true;
     exibirStatus(statusEl, "Enviando foto...", "");
 
     try {
-      var caminho = "galeria/" + Date.now() + "-" + arquivo.name.replace(/[^a-zA-Z0-9.\-_]/g, "-");
-      var referencia = firebaseInfo.storage.ref(caminho);
-      await referencia.put(arquivo);
-      var url = await referencia.getDownloadURL();
+      var caminho = Date.now() + "-" + arquivo.name.replace(/[^a-zA-Z0-9.\-_]/g, "-");
 
-      var existentes = await buscarColecao(firebaseInfo.db, "galeria", null);
+      var envio = await cliente().storage.from(BUCKET_GALERIA).upload(caminho, arquivo);
+      if (envio.error) throw envio.error;
+
+      var publica = cliente().storage.from(BUCKET_GALERIA).getPublicUrl(caminho);
+      var url = publica.data.publicUrl;
+
+      var existentes = await buscarTabela("galeria", null);
       var proximaOrdem = existentes.reduce(function (max, item) { return Math.max(max, item.ordem || 0); }, 0) + 1;
 
-      await firebaseInfo.db.collection("galeria").add({
+      var insercao = await cliente().from("galeria").insert({
         url: url,
         alt: alt,
         ordem: proximaOrdem,
-        storagePath: caminho,
-        criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+        storage_path: caminho,
       });
+      if (insercao.error) throw insercao.error;
 
       exibirStatus(statusEl, "Foto adicionada!", "sucesso");
       formulario.reset();
@@ -487,11 +481,15 @@
   // Assistente IA
   // ---------------------------------------------------------------------
   async function carregarAssistente() {
-    var db = window.RemopFirebase.db;
     var campo = document.getElementById("assistente-instrucoes");
     try {
-      var doc = await db.collection("config").doc("assistente").get();
-      campo.value = doc.exists ? doc.data().instrucoesExtras || "" : "";
+      var resultado = await cliente()
+        .from("config_assistente")
+        .select("instrucoes_extras")
+        .eq("id", 1)
+        .maybeSingle();
+      if (resultado.error) throw resultado.error;
+      campo.value = resultado.data ? resultado.data.instrucoes_extras || "" : "";
     } catch (erro) {
       console.error("[Remop Admin] Falha ao carregar config do assistente:", erro);
     }
@@ -507,10 +505,12 @@
     exibirStatus(statusEl, "Salvando...", "");
 
     try {
-      await window.RemopFirebase.db.collection("config").doc("assistente").set({
-        instrucoesExtras: campo.value.trim(),
-        atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      var resultado = await cliente().from("config_assistente").upsert({
+        id: 1,
+        instrucoes_extras: campo.value.trim(),
+        atualizado_em: new Date().toISOString(),
       });
+      if (resultado.error) throw resultado.error;
       exibirStatus(statusEl, "Instruções salvas — já valem pra próxima conversa.", "sucesso");
     } catch (erro) {
       console.error("[Remop Admin] Falha ao salvar config do assistente:", erro);
@@ -550,15 +550,17 @@
     elementos.statusLogin.textContent = "Entrando...";
     elementos.statusLogin.className = "mensagem-status";
 
-    try {
-      await firebase.auth().signInWithEmailAndPassword(PAINEL_EMAIL_FIXO, pin + SUFIXO_SENHA_PIN);
-    } catch (erro) {
+    var resultado = await cliente().auth.signInWithPassword({
+      email: PAINEL_EMAIL_FIXO,
+      password: pin + SUFIXO_SENHA_PIN,
+    });
+    if (resultado.error) {
       mostrarLogin("PIN incorreto.");
     }
   }
 
   function tratarSair() {
-    firebase.auth().signOut();
+    cliente().auth.signOut();
   }
 
   function iniciar() {
@@ -573,9 +575,9 @@
       galeriaGrid: document.querySelector("[data-galeria-grid]"),
     };
 
-    if (!window.RemopFirebase || !window.RemopFirebase.pronto || typeof firebase.auth !== "function") {
+    if (!window.RemopSupabase || !window.RemopSupabase.pronto) {
       elementos.statusLogin.textContent =
-        "Firebase ainda não configurado neste ambiente — preencha assets/js/config.js (veja o README).";
+        "Supabase ainda não configurado neste ambiente — preencha assets/js/config.js (veja o README).";
       elementos.statusLogin.className = "mensagem-status mensagem-status--erro";
       elementos.formLogin.querySelector('[type="submit"]').disabled = true;
       return;
@@ -590,8 +592,8 @@
     document.querySelector("[data-form-galeria]").addEventListener("submit", enviarFotoGaleria);
     document.querySelector("[data-form-assistente]").addEventListener("submit", salvarAssistente);
 
-    firebase.auth().onAuthStateChanged(function (usuario) {
-      if (usuario) {
+    cliente().auth.onAuthStateChange(function (evento, sessao) {
+      if (sessao && sessao.user) {
         mostrarPainel();
       } else {
         mostrarLogin();

@@ -29,46 +29,48 @@ const MAX_CARACTERES_MENSAGEM = 1000;
 const MAX_CARACTERES_INSTRUCOES_EXTRAS = 1500;
 
 /**
- * Instruções extras que a equipe cadastra pelo painel admin (Firestore,
- * doc config/assistente) e que se somam ao SYSTEM_PROMPT fixo abaixo —
- * ex.: destacar uma promoção, ajustar tom de voz. Totalmente opcional:
- * sem FIREBASE_SERVICE_ACCOUNT configurada (ou qualquer falha na leitura),
- * o bot segue com o comportamento padrão, sem quebrar a conversa.
+ * Instruções extras que a equipe cadastra pelo painel admin (Supabase,
+ * tabela config_assistente) e que se somam ao SYSTEM_PROMPT fixo abaixo
+ * — ex.: destacar uma promoção, ajustar tom de voz. Totalmente opcional:
+ * sem SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY configuradas (ou qualquer
+ * falha na leitura), o bot segue com o comportamento padrão, sem
+ * quebrar a conversa. Usa a service role key (não a anon key) porque
+ * roda no backend e precisa ignorar o RLS pra ler a config.
  */
-let appAdminFirebase = null;
+let clienteAdminSupabase = null;
 
-function obterAppAdminFirebase() {
-  if (appAdminFirebase) return appAdminFirebase;
+function obterClienteAdminSupabase() {
+  if (clienteAdminSupabase) return clienteAdminSupabase;
 
-  const credencial = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!credencial) return null;
+  const url = process.env.SUPABASE_URL;
+  const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !chave) return null;
 
   try {
-    const admin = require("firebase-admin");
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(JSON.parse(credencial)),
-      });
-    }
-    appAdminFirebase = admin;
-    return appAdminFirebase;
+    const { createClient } = require("@supabase/supabase-js");
+    clienteAdminSupabase = createClient(url, chave);
+    return clienteAdminSupabase;
   } catch (erro) {
-    console.warn("[chat-bot] Falha ao inicializar firebase-admin:", erro.message);
+    console.warn("[chat-bot] Falha ao inicializar o cliente admin do Supabase:", erro.message);
     return null;
   }
 }
 
 async function buscarInstrucoesExtras() {
-  const admin = obterAppAdminFirebase();
-  if (!admin) return "";
+  const supabase = obterClienteAdminSupabase();
+  if (!supabase) return "";
 
   try {
-    const doc = await admin.firestore().collection("config").doc("assistente").get();
-    if (!doc.exists) return "";
-    const texto = String(doc.data().instrucoesExtras || "").trim();
+    const { data, error } = await supabase
+      .from("config_assistente")
+      .select("instrucoes_extras")
+      .eq("id", 1)
+      .maybeSingle();
+    if (error) throw error;
+    const texto = String((data && data.instrucoes_extras) || "").trim();
     return texto.slice(0, MAX_CARACTERES_INSTRUCOES_EXTRAS);
   } catch (erro) {
-    console.warn("[chat-bot] Falha ao buscar instruções extras do Firestore:", erro.message);
+    console.warn("[chat-bot] Falha ao buscar instruções extras do Supabase:", erro.message);
     return "";
   }
 }

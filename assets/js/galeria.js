@@ -1,9 +1,9 @@
 /**
  * Galeria dinâmica: acrescenta, depois das fotos reais já fixas no HTML,
- * as fotos que a equipe adicionar pelo painel administrativo (coleção
- * "galeria" no Firestore, ordenada pelo campo "ordem").
+ * as fotos que a equipe adicionar pelo painel administrativo (tabela
+ * "galeria" no Supabase, ordenada pela coluna "ordem").
  *
- * Se o Firebase não estiver configurado ou a coleção estiver vazia, a
+ * Se o Supabase não estiver configurado ou a tabela estiver vazia, a
  * galeria continua exatamente como está hoje — isso é só um acréscimo.
  */
 (function () {
@@ -29,13 +29,17 @@
 
   async function carregar() {
     var grade = document.querySelector(".grid-galeria-real");
-    var firebaseInfo = window.RemopFirebase;
-    if (!grade || !firebaseInfo || !firebaseInfo.pronto) return;
+    var supabaseInfo = window.RemopSupabase;
+    if (!grade || !supabaseInfo || !supabaseInfo.pronto) return;
 
     try {
-      var snap = await firebaseInfo.db.collection("galeria").orderBy("ordem", "asc").get();
-      snap.forEach(function (doc) {
-        var foto = doc.data();
+      var resultado = await supabaseInfo.client
+        .from("galeria")
+        .select("url, alt, ordem")
+        .order("ordem", { ascending: true });
+      if (resultado.error) throw resultado.error;
+
+      (resultado.data || []).forEach(function (foto) {
         if (!foto.url) return;
         grade.appendChild(montarFoto(foto));
       });
