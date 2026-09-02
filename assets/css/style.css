@@ -376,6 +376,32 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
       linear-gradient(90deg, rgba(22,32,66,0.95) 0%, rgba(22,32,66,0.82) 38%, rgba(22,32,66,0.35) 72%, rgba(22,32,66,0.1) 100%);
   }
 }
+
+/* Hero das páginas secundárias (Institucional) — mesma receita da home,
+   mais baixo porque aqui é só a abertura da página, não a primeira
+   impressão do site inteiro. Foto real da fachada, sem filtro nenhum —
+   só o véu escuro que já usamos em toda foto de hero. */
+.hero--institucional { min-height: 52vh; }
+.hero__foto--institucional {
+  background-image: url('../img/fachada-remop-institucional.jpg');
+  background-position: center 24%;
+}
+/* Essa foto tem placas com texto (contato/endereço) — sem esconder a
+   foto real, só um véu mais forte que a receita padrão, pra ler como
+   fundo atmosférico e não como um cartaz a decifrar por trás do título. */
+.hero__foto--institucional::after {
+  background:
+    radial-gradient(120% 90% at 15% 100%, rgba(8,11,26,0.5) 0%, rgba(8,11,26,0) 55%),
+    linear-gradient(180deg, rgba(22,32,66,0.95) 0%, rgba(22,32,66,0.85) 45%, rgba(22,32,66,0.72) 100%);
+}
+@media (min-width: 900px) {
+  .hero__foto--institucional::after {
+    background:
+      radial-gradient(70% 100% at 0% 100%, rgba(8,11,26,0.55) 0%, rgba(8,11,26,0) 60%),
+      linear-gradient(90deg, rgba(22,32,66,0.97) 0%, rgba(22,32,66,0.9) 42%, rgba(22,32,66,0.55) 74%, rgba(22,32,66,0.3) 100%);
+  }
+}
+
 .hero__conteudo {
   position: relative;
   z-index: 1;
