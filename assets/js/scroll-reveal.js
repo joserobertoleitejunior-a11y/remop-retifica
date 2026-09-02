@@ -3,10 +3,9 @@
  * conforme o padrão de motion da agência (PADROES-AGENCIA.md §2):
  * GSAP/ScrollTrigger para narrativa de scroll e transição de seção.
  *
- * Os títulos principais usam um efeito de "montagem/desmontagem": cada
- * letra some montada em pedaços espalhados e vai se encaixando conforme
- * a página rola — como progresso (scrub) preso na posição do scroll, o
- * mesmo efeito acontece ao contrário se o visitante rolar pra cima.
+ * Os títulos principais usam um efeito de "montagem": as letras entram
+ * vindo da esquerda, em ordem, uma única vez, quando o título chega
+ * perto da tela — sem desmontar de novo, pra nunca sumir sozinho.
  *
  * Respeita prefers-reduced-motion: quando ativo, os elementos aparecem
  * direto, sem nenhuma animação.
@@ -55,10 +54,11 @@
   }
 
   /**
-   * Título entra vindo da esquerda (letra a letra, em ordem) conforme
-   * a página desce até ele, e sai pela direita conforme a página
-   * continua descendo e o título vai saindo da tela por cima — preso
-   * ao scroll (scrub), então rolar pra cima desfaz o movimento.
+   * Título entra vindo da esquerda (letra a letra, em ordem) quando o
+   * elemento chega perto da tela. Toca uma única vez (sem scrub, sem
+   * desmontagem na saída) — assim o texto nunca fica "preso" a um
+   * cálculo de progresso que pode já nascer parcial (ex.: título logo
+   * abaixo do cabeçalho, que já está perto do topo da tela no load).
    */
   function montarDesmontarAoRolar(seletor) {
     var elementos = gsap.utils.toArray(seletor);
@@ -66,25 +66,17 @@
       var letras = dividirEmLetras(elemento);
       if (!letras.length) return;
 
-      var tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: elemento,
-          start: "top 95%",
-          end: "bottom 10%",
-          scrub: 0.5,
-        },
-      });
-
-      tl.from(letras, {
+      gsap.from(letras, {
         x: -60,
         opacity: 0,
-        ease: "none",
+        ease: "power2.out",
+        duration: 0.6,
         stagger: 0.02,
-      }).to(letras, {
-        x: 60,
-        opacity: 0,
-        ease: "none",
-        stagger: 0.02,
+        scrollTrigger: {
+          trigger: elemento,
+          start: "top 90%",
+          toggleActions: "play none none none",
+        },
       });
     });
   }

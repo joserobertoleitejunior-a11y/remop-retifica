@@ -13,6 +13,37 @@
 
   var CHAVE_REGISTRADO = "remopVisitanteRegistrado";
   var CHAVE_PULOU = "remopVisitantePulouPortao";
+  var CHAVE_NOME = "remopVisitanteNome";
+  var CHAVE_WHATSAPP = "remopVisitanteWhatsapp";
+  var CHAVE_CARRO = "remopVisitanteCarro";
+
+  /**
+   * Identidade do visitante compartilhada entre o portão e o bot —
+   * assim o bot não pergunta nome/WhatsApp de novo se a pessoa já
+   * preencheu o portão.
+   */
+  window.RemopIdentidade = {
+    obter: function () {
+      try {
+        return {
+          nome: localStorage.getItem(CHAVE_NOME) || "",
+          whatsapp: localStorage.getItem(CHAVE_WHATSAPP) || "",
+          carro: localStorage.getItem(CHAVE_CARRO) || "",
+        };
+      } catch (erro) {
+        return { nome: "", whatsapp: "", carro: "" };
+      }
+    },
+    salvar: function (dados) {
+      try {
+        if (dados.nome) localStorage.setItem(CHAVE_NOME, dados.nome);
+        if (dados.whatsapp) localStorage.setItem(CHAVE_WHATSAPP, dados.whatsapp);
+        if (dados.carro) localStorage.setItem(CHAVE_CARRO, dados.carro);
+      } catch (erro) {
+        /* sem storage — segue sem lembrar */
+      }
+    },
+  };
 
   function jaPassouPeloPortao() {
     try {
@@ -95,6 +126,12 @@
       } catch (erro) {
         console.warn("[Remop] Não deu pra salvar o visitante agora:", erro);
       }
+
+      window.RemopIdentidade.salvar({
+        nome: dados.nome,
+        whatsapp: dados.whatsapp,
+        carro: [dados.modelo, dados.ano].filter(Boolean).join(" "),
+      });
 
       try {
         localStorage.setItem(CHAVE_REGISTRADO, "1");
