@@ -527,6 +527,101 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 
 .botao--sm { padding: 9px 18px; font-size: 0.78rem; }
 
+/* ---------- Painel inline de "Consultar valor" ----------
+   Não é o chat flutuante: encaixa dentro do próprio card do serviço,
+   logo abaixo do botão que abriu — a IA responde ali mesmo, sem cobrir
+   o resto da página. As bolhas de mensagem reaproveitam as classes do
+   chat-widget.css (chat-widget__bolha etc.), carregado em todas as
+   páginas. */
+.painel-consulta {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cor-borda);
+  text-align: left;
+}
+.painel-consulta__cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.painel-consulta__cabecalho strong { font-size: 0.85rem; color: var(--cor-texto-claro); }
+.painel-consulta__fechar {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--cor-texto-claro);
+  padding: 0 2px;
+}
+
+.painel-consulta__identidade { display: flex; flex-direction: column; gap: 8px; }
+.painel-consulta__identidade[hidden] { display: none; }
+.painel-consulta__identidade p { margin: 0 0 2px; font-size: 0.85rem; color: var(--cor-texto); }
+.painel-consulta__identidade input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+
+.painel-consulta__mensagens {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.painel-consulta__mensagens:empty { margin: 0; }
+
+.painel-consulta__opcoes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.painel-consulta__opcoes[hidden] { display: none; }
+.chip-opcao {
+  background: #fff;
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cor-primaria);
+  cursor: pointer;
+  transition: border-color .25s var(--transicao-suave), background-color .25s var(--transicao-suave);
+}
+.chip-opcao:hover { border-color: var(--cor-acento); background: var(--cor-fundo-alt); }
+
+.painel-consulta__form { display: flex; gap: 8px; }
+.painel-consulta__form[hidden] { display: none; }
+.painel-consulta__form input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+.painel-consulta__enviar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cor-acento);
+  color: var(--cor-primaria);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.painel-consulta__enviar svg { width: 16px; height: 16px; }
+.painel-consulta__enviar:disabled { opacity: .5; cursor: not-allowed; }
+
+.painel-consulta__fallback { text-align: center; padding-top: 4px; }
+.painel-consulta__fallback p { font-size: 0.82rem; margin-bottom: 8px; }
+
 /* ---------- Diferenciais ---------- */
 .diferenciais__layout {
   display: grid;

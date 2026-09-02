@@ -234,6 +234,47 @@
 
 </main>
 
+<!-- Modelo do painel inline de "Consultar valor" — clonado por
+     chat-widget.js e encaixado dentro do card do serviço clicado. -->
+<template data-modelo-painel-consulta>
+  <div class="painel-consulta">
+    <div class="painel-consulta__cabecalho">
+      <strong data-painel-titulo>Consultar valor</strong>
+      <button type="button" class="painel-consulta__fechar" data-painel-fechar aria-label="Fechar">×</button>
+    </div>
+
+    <div class="painel-consulta__identidade" data-painel-identidade hidden>
+      <p>Antes de começar, como podemos te chamar?</p>
+      <input type="text" placeholder="Seu nome" data-painel-nome autocomplete="off">
+      <input type="tel" placeholder="Seu WhatsApp (com DDD)" data-painel-whatsapp autocomplete="off">
+      <button type="button" class="botao botao--primario botao--sm botao--bloco" data-painel-continuar>Continuar</button>
+    </div>
+
+    <div class="painel-consulta__conteudo" data-painel-conteudo>
+      <div class="painel-consulta__mensagens" data-painel-mensagens aria-live="polite"></div>
+
+      <div class="painel-consulta__opcoes" data-painel-opcoes>
+        <button type="button" class="chip-opcao" data-opcao="Só quero saber o valor aproximado desse serviço.">Só quero o valor aproximado</button>
+        <button type="button" class="chip-opcao" data-opcao="Meu carro está com barulho ou vibração diferente do normal.">Tem barulho/vibração estranha</button>
+        <button type="button" class="chip-opcao" data-opcao="É preventivo — ainda não notei problema, quero adiantar.">É preventivo, sem problema notado</button>
+      </div>
+
+      <form class="painel-consulta__form" data-painel-form>
+        <label class="visually-hidden" for="painel-consulta-input">Descreva o que está acontecendo</label>
+        <input id="painel-consulta-input" type="text" placeholder="Ou descreva com suas palavras..." data-painel-input autocomplete="off">
+        <button type="submit" class="painel-consulta__enviar" aria-label="Enviar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+
+      <div class="painel-consulta__fallback" data-painel-fallback hidden>
+        <p>Fale direto com nossa equipe agora:</p>
+        <a class="botao botao--whatsapp botao--bloco botao--sm" href="#" target="_blank" rel="noopener" data-painel-fallback-link>Chamar no WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</template>
+
 <!-- ===================== 9. BOT / CONTATO FLUTUANTE ===================== -->
 <a class="whatsapp-flutuante" data-whatsapp-link href="#" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
   <svg viewBox="0 0 32 32" fill="#ffffff" aria-hidden="true"><path d="M16 3C9 3 3.4 8.6 3.4 15.5c0 2.4.7 4.7 1.9 6.7L3 29l7-2.2c1.9 1 4 1.6 6 1.6 7 0 12.6-5.6 12.6-12.5S23 3 16 3zm0 22.7c-1.9 0-3.7-.5-5.3-1.4l-.4-.2-4.2 1.3 1.4-4.1-.2-.4c-1-1.6-1.5-3.5-1.5-5.4C5.8 9.9 10.4 5.3 16 5.3S26.2 9.9 26.2 15.5 21.6 25.7 16 25.7zm6-7.9c-.3-.2-1.9-.9-2.2-1s-.5-.2-.8.2-.9 1-1.1 1.2-.4.3-.7.1c-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.3-.2-.3 0-.5.1-.7.1-.1.3-.4.5-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.2-.8-1.9-1.1-2.6-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4S9 10.1 9 11.4c0 1.3.9 2.6 1.1 2.8.1.2 1.8 2.8 4.4 3.9.6.3 1.1.4 1.5.6.6.2 1.2.2 1.6.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.3-.2-.6-.4z"/></svg>

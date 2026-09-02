@@ -22,6 +22,7 @@
   var diagnosticoResumo = null;
   var servicoAtual = null;
   var mensagemPendente = null;
+  var painelConsultaAberto = null;
 
   function criarBolha(texto, tipo) {
     var bolha = document.createElement("div");
@@ -237,12 +238,12 @@
   }
 
   /**
-   * Abre o painel. Sem argumentos, é o atalho genérico do cabeçalho
-   * (fluxo de diagnóstico padrão). Com `servico` ou `mensagemInicial`,
-   * é um atalho específico (botão "Consultar valor" de um serviço, ou
-   * a caixa "Descreva aqui o que você precisa") — sempre começa uma
-   * conversa nova e já manda a primeira mensagem sozinho, sem esperar
-   * o cliente digitar de novo.
+   * Abre o painel flutuante do cabeçalho ("Diagnóstico com IA"). Sem
+   * argumentos, é o fluxo de diagnóstico padrão. Com `mensagemInicial`
+   * (caixa "Descreva aqui o que você precisa"), começa uma conversa nova
+   * e já manda essa mensagem sozinho, sem esperar o cliente digitar de
+   * novo. O botão "Consultar valor" de cada serviço usa outro caminho —
+   * ver abrirPainelConsulta — não este painel flutuante.
    */
   function abrirPainel(opcoes) {
     opcoes = opcoes || {};
@@ -252,28 +253,24 @@
       botao.setAttribute("aria-expanded", "true");
     });
 
-    var novoFluxo = !!(opcoes.mensagemInicial || opcoes.servico);
+    var novoFluxo = !!opcoes.mensagemInicial;
     if (novoFluxo) {
       reiniciarConversa();
-      servicoAtual = opcoes.servico || null;
+      servicoAtual = null;
     }
 
     if (elementos.painelIniciado && !novoFluxo) return;
     elementos.painelIniciado = true;
 
-    var mensagemAutomatica =
-      opcoes.mensagemInicial ||
-      (opcoes.servico ? "Quero consultar o valor de: " + opcoes.servico + "." : null);
-
     var identidade = (window.RemopIdentidade && window.RemopIdentidade.obter()) || {};
     if (!identidade.nome || !identidade.whatsapp) {
-      mensagemPendente = mensagemAutomatica;
+      mensagemPendente = opcoes.mensagemInicial || null;
       elementos.identidade.hidden = false;
       elementos.form.hidden = true;
       var primeiroCampo = elementos.identidade.querySelector("input");
       if (primeiroCampo) primeiroCampo.focus();
-    } else if (mensagemAutomatica) {
-      enviarTexto(mensagemAutomatica);
+    } else if (opcoes.mensagemInicial) {
+      enviarTexto(opcoes.mensagemInicial);
     } else {
       iniciarConversa();
     }
@@ -284,6 +281,246 @@
     document.querySelectorAll("[data-chat-abrir]").forEach(function (botao) {
       botao.setAttribute("aria-expanded", "false");
     });
+  }
+
+  /**
+   * Painel de "Consultar valor" — não é o chat flutuante: abre encaixado
+   * dentro do próprio card do serviço, logo abaixo do botão, com
+   * perguntas prontas (chips) e um campo pra descrever com as próprias
+   * palavras. Só um card por vez fica aberto.
+   */
+  function fecharPainelConsulta() {
+    if (painelConsultaAberto && painelConsultaAberto.parentNode) {
+      painelConsultaAberto.parentNode.removeChild(painelConsultaAberto);
+    }
+    painelConsultaAberto = null;
+  }
+
+  function criarPainelConsulta(servico) {
+    var modelo = document.querySelector("[data-modelo-painel-consulta]");
+    if (!modelo) return null;
+
+    var raiz = modelo.content.firstElementChild.cloneNode(true);
+    var historicoLocal = [];
+    var fallbackLocal = false;
+
+    var el = {
+      titulo: raiz.querySelector("[data-painel-titulo]"),
+      fechar: raiz.querySelector("[data-painel-fechar]"),
+      identidade: raiz.querySelector("[data-painel-identidade]"),
+      nome: raiz.querySelector("[data-painel-nome]"),
+      whatsapp: raiz.querySelector("[data-painel-whatsapp]"),
+      continuar: raiz.querySelector("[data-painel-continuar]"),
+      conteudo: raiz.querySelector("[data-painel-conteudo]"),
+      mensagens: raiz.querySelector("[data-painel-mensagens]"),
+      opcoes: raiz.querySelector("[data-painel-opcoes]"),
+      form: raiz.querySelector("[data-painel-form]"),
+      input: raiz.querySelector("[data-painel-input]"),
+      enviar: raiz.querySelector(".painel-consulta__enviar"),
+      fallback: raiz.querySelector("[data-painel-fallback]"),
+      fallbackLink: raiz.querySelector("[data-painel-fallback-link]"),
+    };
+
+    el.titulo.textContent = servico;
+
+    function adicionarBolhaLocal(texto, tipo) {
+      var bolha = document.createElement("div");
+      bolha.className = "chat-widget__bolha chat-widget__bolha--" + tipo;
+      bolha.textContent = texto;
+      el.mensagens.appendChild(bolha);
+      el.mensagens.scrollTop = el.mensagens.scrollHeight;
+      return bolha;
+    }
+
+    function adicionarPesquisandoLocal(texto) {
+      var bolha = document.createElement("div");
+      bolha.className = "chat-widget__bolha chat-widget__bolha--pesquisando";
+      var indicador = document.createElement("span");
+      indicador.className = "chat-widget__pesquisando-icone";
+      bolha.appendChild(indicador);
+      bolha.appendChild(document.createTextNode(texto));
+      el.mensagens.appendChild(bolha);
+      el.mensagens.scrollTop = el.mensagens.scrollHeight;
+    }
+
+    function adicionarDiagnosticoLocal(texto, resumoWhatsapp) {
+      var card = document.createElement("div");
+      card.className = "chat-widget__diagnostico";
+      var paragrafo = document.createElement("p");
+      paragrafo.textContent = texto;
+      card.appendChild(paragrafo);
+
+      if (resumoWhatsapp) {
+        var identidade = (window.RemopIdentidade && window.RemopIdentidade.obter()) || {};
+        var partes = [];
+        if (identidade.nome) partes.push("Nome: " + identidade.nome);
+        if (identidade.whatsapp) partes.push("WhatsApp: " + identidade.whatsapp);
+        partes.push(resumoWhatsapp);
+
+        var link = document.createElement("a");
+        link.className = "botao botao--whatsapp botao--bloco botao--sm";
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.href = window.RemopWhatsApp ? window.RemopWhatsApp.montarLink(partes.join("\n")) : "#";
+        link.textContent = "Enviar resumo pro WhatsApp";
+        card.appendChild(link);
+      }
+      el.mensagens.appendChild(card);
+      el.mensagens.scrollTop = el.mensagens.scrollHeight;
+    }
+
+    function mostrarDigitandoLocal() {
+      var indicador = document.createElement("div");
+      indicador.className = "chat-widget__digitando";
+      indicador.innerHTML = "<span></span><span></span><span></span>";
+      el.mensagens.appendChild(indicador);
+      el.mensagens.scrollTop = el.mensagens.scrollHeight;
+      return indicador;
+    }
+
+    function ativarFallbackLocal() {
+      if (fallbackLocal) return;
+      fallbackLocal = true;
+      adicionarBolhaLocal(
+        "Atendimento por IA chega em breve por aqui — mas você pode falar direto com nossa equipe agora mesmo no WhatsApp.",
+        "sistema"
+      );
+      el.opcoes.hidden = true;
+      el.form.hidden = true;
+      el.fallback.hidden = false;
+      if (el.fallbackLink && window.RemopWhatsApp) {
+        el.fallbackLink.href = window.RemopWhatsApp.montarLink("Olá! Quero consultar o valor de: " + servico + ".");
+      }
+    }
+
+    async function chamarBotLocal(modo, mensagemUsuario) {
+      var config = window.REMOP_CONFIG || {};
+      var identidade = (window.RemopIdentidade && window.RemopIdentidade.obter()) || {};
+      var resposta = await fetch(config.chatBotEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mensagem: mensagemUsuario || "",
+          historico: historicoLocal,
+          modo: modo,
+          identidade: identidade,
+          servico: servico,
+        }),
+      });
+      if (!resposta.ok) throw new Error("Endpoint indisponível (" + resposta.status + ")");
+      return resposta.json();
+    }
+
+    async function processarRespostaLocal(dados, jaEncadeou) {
+      if (dados.fase === "pesquisando") {
+        adicionarPesquisandoLocal(dados.resposta);
+        historicoLocal.push({ papel: "bot", texto: dados.resposta });
+        if (jaEncadeou) return;
+
+        var indicador = mostrarDigitandoLocal();
+        try {
+          var proxima = await chamarBotLocal("pesquisar", "");
+          indicador.remove();
+          await processarRespostaLocal(proxima, true);
+        } catch (erro) {
+          indicador.remove();
+          throw erro;
+        }
+        return;
+      }
+
+      if (dados.fase === "diagnostico") {
+        adicionarDiagnosticoLocal(dados.resposta, dados.resumoWhatsapp);
+        historicoLocal.push({ papel: "bot", texto: dados.resposta });
+        el.opcoes.hidden = true;
+        return;
+      }
+
+      adicionarBolhaLocal(dados.resposta, "bot");
+      historicoLocal.push({ papel: "bot", texto: dados.resposta });
+    }
+
+    async function enviarTextoLocal(texto) {
+      texto = (texto || "").trim();
+      if (!texto || fallbackLocal) return;
+
+      el.opcoes.hidden = true;
+      adicionarBolhaLocal(texto, "usuario");
+      historicoLocal.push({ papel: "usuario", texto: texto });
+      if (window.RemopAnalytics) window.RemopAnalytics.registrarPergunta(texto);
+      el.enviar.disabled = true;
+
+      var indicador = mostrarDigitandoLocal();
+      try {
+        var dados = await chamarBotLocal("normal", texto);
+        indicador.remove();
+        await processarRespostaLocal(dados, false);
+      } catch (erro) {
+        indicador.remove();
+        console.warn("[Remop] Painel de consulta indisponível, ativando fallback:", erro.message);
+        ativarFallbackLocal();
+      } finally {
+        el.enviar.disabled = false;
+      }
+    }
+
+    el.form.addEventListener("submit", function (evento) {
+      evento.preventDefault();
+      var texto = el.input.value.trim();
+      if (!texto) return;
+      el.input.value = "";
+      enviarTextoLocal(texto);
+    });
+
+    el.opcoes.querySelectorAll("[data-opcao]").forEach(function (botaoOpcao) {
+      botaoOpcao.addEventListener("click", function () {
+        enviarTextoLocal(botaoOpcao.getAttribute("data-opcao"));
+      });
+    });
+
+    el.fechar.addEventListener("click", fecharPainelConsulta);
+
+    function liberarConteudo() {
+      el.identidade.hidden = true;
+      el.conteudo.hidden = false;
+      el.input.focus();
+    }
+
+    el.continuar.addEventListener("click", function () {
+      var nome = el.nome.value.trim();
+      var whatsapp = el.whatsapp.value.trim();
+      if (!nome || whatsapp.replace(/\D/g, "").length < 10) {
+        el.nome.focus();
+        return;
+      }
+      window.RemopIdentidade.salvar({ nome: nome, whatsapp: whatsapp });
+      liberarConteudo();
+    });
+
+    var identidadeAtual = (window.RemopIdentidade && window.RemopIdentidade.obter()) || {};
+    if (!identidadeAtual.nome || !identidadeAtual.whatsapp) {
+      el.identidade.hidden = false;
+      el.conteudo.hidden = true;
+    } else {
+      liberarConteudo();
+    }
+
+    return raiz;
+  }
+
+  function abrirPainelConsulta(botao, servico) {
+    var card = botao.closest(".card-servico");
+    var jaAbertoNesteCard = card && painelConsultaAberto && card.contains(painelConsultaAberto);
+
+    fecharPainelConsulta();
+    if (jaAbertoNesteCard) return; // clicar de novo no mesmo botão fecha
+
+    var painel = criarPainelConsulta(servico);
+    if (!painel) return;
+
+    botao.insertAdjacentElement("afterend", painel);
+    painelConsultaAberto = painel;
+    painel.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function iniciar() {
@@ -309,7 +546,7 @@
     });
     document.querySelectorAll("[data-consultar-servico]").forEach(function (botao) {
       botao.addEventListener("click", function () {
-        abrirPainel({ servico: botao.getAttribute("data-consultar-servico") });
+        abrirPainelConsulta(botao, botao.getAttribute("data-consultar-servico"));
       });
     });
     var perguntaLivre = document.querySelector("[data-pergunta-livre]");
