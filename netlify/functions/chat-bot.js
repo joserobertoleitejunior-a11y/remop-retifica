@@ -27,7 +27,7 @@ const ANTHROPIC_MODEL = "claude-haiku-4-5";
 const MAX_MENSAGENS_HISTORICO = 12;
 const MAX_CARACTERES_MENSAGEM = 1000;
 
-const SYSTEM_PROMPT = `Você é o assistente de diagnóstico da Remop Retífica de Motores e Auto Peças, em Itapetininga-SP, no ar desde 1987.
+const SYSTEM_PROMPT = `Você é o assistente de diagnóstico da Remop Retífica de Motores e Auto Peças, em Itapetininga-SP, no ar desde 1989.
 
 Você NÃO é um chat de bate-papo livre. Você conduz um passo a passo de diagnóstico, uma pergunta objetiva de cada vez, até formar uma suspeita do que pode estar acontecendo com o motor/carro do visitante. Regras de condução:
 

@@ -15,7 +15,7 @@
 
 ---
 
-## 2. Texto institucional — lapidado (de 1987 pra 2026)
+## 2. Texto institucional — lapidado (de 1989 pra 2026)
 
 > **Mais do que motores, construímos confiança.**
 >
