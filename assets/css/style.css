@@ -242,7 +242,13 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
     padding: 0;
     gap: 22px;
   }
-  .nav-principal a { border-bottom: none; padding: 4px 0; }
+  .nav-principal a { border-bottom: none; padding: 4px 0; position: relative; }
+  .nav-principal a:not(:last-child)::after {
+    content: '|';
+    position: absolute;
+    right: -13px;
+    color: rgba(255,255,255,0.35);
+  }
 }
 
 /* ---------- Hero ---------- */
