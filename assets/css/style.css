@@ -329,6 +329,9 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   border-bottom: 1px solid rgba(255,255,255,0.08);
   font-weight: 500;
 }
+/* Só aparece no menu hambúrguer (mobile) — a barra de navegação do
+   desktop é só pro visitante, sem link administrativo à vista. */
+.nav-principal__admin { color: rgba(255,255,255,0.55) !important; font-size: 0.85rem; font-weight: 400 !important; }
 
 @media (min-width: 900px) {
   .cabecalho__contato { display: inline-flex; }
@@ -342,6 +345,7 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
     gap: 22px;
   }
   .nav-principal a { border-bottom: none; padding: 4px 0; position: relative; }
+  .nav-principal__admin { display: none !important; }
   .nav-principal a:not(:last-child)::after {
     content: '|';
     position: absolute;

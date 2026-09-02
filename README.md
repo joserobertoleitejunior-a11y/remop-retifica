@@ -114,8 +114,18 @@ Setup manual (uma vez só):
 1. No **Firebase Console → Authentication → Sign-in method**, habilitar o
    provedor **E-mail/senha**.
 2. Em **Authentication → Users → Add user**, criar o login de quem vai
-   acessar o painel (e-mail + senha) — não existe cadastro público, só
-   esse usuário criado manualmente consegue entrar.
+   acessar o painel — não existe cadastro público, só esse usuário criado
+   manualmente consegue entrar. O login da equipe é só um PIN numérico
+   (`assets/js/admin.js`), mas o Firebase por baixo dos panos exige um
+   e-mail e uma senha de pelo menos 6 caracteres — então cadastre:
+   - **E-mail**: `painel@remop-retifica.internal`
+   - **Senha**: o PIN + o sufixo fixo que está em `SUFIXO_SENHA_PIN` no
+     topo de `assets/js/admin.js`. Com o PIN padrão `5786` e o sufixo
+     padrão do código, a senha a cadastrar é `5786-RemopPainel2026!`.
+   - Pra trocar o PIN: mude o que a equipe digita, sem mexer em código —
+     é só criar/editar o usuário no Firebase Console com uma senha nova
+     terminando no mesmo sufixo (ex.: PIN `1234` → senha
+     `1234-RemopPainel2026!`).
 3. Aplicar as regras do Firestore e do Storage dos passos 5 e 6 acima —
    sem isso o dashboard carrega vazio mesmo logado, e a galeria/assistente
    não funcionam.

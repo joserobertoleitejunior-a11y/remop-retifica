@@ -1,15 +1,25 @@
 /**
- * Painel administrativo — login (Firebase Auth) + dashboard (Chart.js) +
- * Clientes + Galeria + Assistente IA, com dados reais das coleções que
- * assets/js/analytics.js, visitor-gate.js, lead-form.js e o próprio painel
- * gravam no Firestore.
+ * Painel administrativo — login por PIN (Firebase Auth por baixo dos
+ * panos) + dashboard (Chart.js) + Clientes + Galeria + Assistente IA,
+ * com dados reais das coleções que assets/js/analytics.js,
+ * visitor-gate.js, lead-form.js e o próprio painel gravam no Firestore.
  *
- * Pré-requisito (feito uma vez, fora do código): criar um usuário em
+ * Login por PIN: o Firebase Auth continua sendo o mecanismo real por
+ * trás (é o que autoriza a leitura protegida no Firestore/Storage), mas
+ * a equipe só digita um PIN numérico curto — o painel completa esse PIN
+ * com um sufixo fixo antes de mandar pro Firebase, porque o Firebase
+ * exige senha de pelo menos 6 caracteres. Ver README.md pra saber qual
+ * e-mail/senha cadastrar no Firebase Console → Authentication.
+ *
+ * Pré-requisito (feito uma vez, fora do código): criar esse usuário em
  * Firebase Console → Authentication → Add user, e ajustar as regras do
  * Firestore/Storage (ver README.md).
  */
 (function () {
   "use strict";
+
+  var PAINEL_EMAIL_FIXO = "painel@remop-retifica.internal";
+  var SUFIXO_SENHA_PIN = "-RemopPainel2026!";
 
   var CORES = {
     visitantes: "#1E2E63",
@@ -528,21 +538,22 @@
     if (mensagemErro) {
       elementos.statusLogin.textContent = mensagemErro;
       elementos.statusLogin.className = "mensagem-status mensagem-status--erro";
+      elementos.formLogin.reset();
+      elementos.formLogin.pin.focus();
     }
   }
 
   async function tratarLogin(evento) {
     evento.preventDefault();
-    var email = elementos.formLogin.email.value.trim();
-    var senha = elementos.formLogin.senha.value;
+    var pin = elementos.formLogin.pin.value.trim();
 
     elementos.statusLogin.textContent = "Entrando...";
     elementos.statusLogin.className = "mensagem-status";
 
     try {
-      await firebase.auth().signInWithEmailAndPassword(email, senha);
+      await firebase.auth().signInWithEmailAndPassword(PAINEL_EMAIL_FIXO, pin + SUFIXO_SENHA_PIN);
     } catch (erro) {
-      mostrarLogin("E-mail ou senha inválidos.");
+      mostrarLogin("PIN incorreto.");
     }
   }
 

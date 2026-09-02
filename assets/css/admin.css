@@ -30,6 +30,12 @@
 .admin-login__caixa h1 { font-family: var(--fonte-titulo); font-size: 1.4rem; margin: 0 0 4px; }
 .admin-login__caixa > p { color: var(--cor-texto-claro); font-size: 0.9rem; margin: 0 0 20px; }
 .admin-login__caixa .campo { text-align: left; margin-bottom: 14px; }
+.admin-login__pin {
+  text-align: center;
+  font-size: 1.6rem;
+  letter-spacing: 0.5em;
+  font-family: var(--fonte-titulo);
+}
 
 /* ---------- Header do painel ---------- */
 .admin-header {

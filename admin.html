@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20260902e">
-<link rel="stylesheet" href="assets/css/admin.css?v=20260902e">
+<link rel="stylesheet" href="assets/css/style.css?v=20260902f">
+<link rel="stylesheet" href="assets/css/admin.css?v=20260902f">
 </head>
 <body class="admin-body">
 
@@ -22,12 +22,8 @@
     <p>Acesso restrito à equipe Remop.</p>
 
     <div class="campo">
-      <label for="login-email">E-mail</label>
-      <input id="login-email" name="email" type="email" required autocomplete="username" placeholder="seuemail@remop.com.br">
-    </div>
-    <div class="campo">
-      <label for="login-senha">Senha</label>
-      <input id="login-senha" name="senha" type="password" required autocomplete="current-password" placeholder="••••••••">
+      <label for="login-pin">PIN de acesso</label>
+      <input id="login-pin" name="pin" class="admin-login__pin" type="password" inputmode="numeric" pattern="[0-9]*" minlength="4" maxlength="8" required autocomplete="off" placeholder="••••">
     </div>
     <button class="botao botao--primario botao--bloco" type="submit">Entrar</button>
     <p class="mensagem-status" data-status-login></p>
@@ -207,8 +203,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 
-<script src="assets/js/config.js?v=20260902e"></script>
-<script src="assets/js/firebase-init.js?v=20260902e"></script>
-<script src="assets/js/admin.js?v=20260902e"></script>
+<script src="assets/js/config.js?v=20260902f"></script>
+<script src="assets/js/firebase-init.js?v=20260902f"></script>
+<script src="assets/js/admin.js?v=20260902f"></script>
 </body>
 </html>
