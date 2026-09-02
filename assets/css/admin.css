@@ -1,0 +1,163 @@
+/* ==========================================================================
+   Painel administrativo — Remop Retífica
+   ========================================================================== */
+
+.admin-body { background: var(--cor-fundo-alt); margin: 0; }
+
+/* ---------- Login ---------- */
+.admin-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--cor-primaria);
+}
+/* [hidden] do navegador e a classe acima têm a mesma especificidade —
+   sem isso, quem vem depois na cascata (a classe) ganha e o hidden vira
+   letra morta, deixando o login visível atrás do painel. */
+.admin-login[hidden] { display: none; }
+.admin-login__caixa {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px 28px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  text-align: center;
+}
+.admin-login__logo { height: 40px; width: auto; margin: 0 auto 16px; display: block; }
+.admin-login__caixa h1 { font-family: var(--fonte-titulo); font-size: 1.4rem; margin: 0 0 4px; }
+.admin-login__caixa > p { color: var(--cor-texto-claro); font-size: 0.9rem; margin: 0 0 20px; }
+.admin-login__caixa .campo { text-align: left; margin-bottom: 14px; }
+
+/* ---------- Header do painel ---------- */
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  background: var(--cor-primaria);
+  flex-wrap: wrap;
+}
+.admin-header__logo { display: flex; }
+.admin-header__logo img { height: 28px; width: auto; display: block; }
+.admin-nav { display: flex; gap: 16px; }
+.admin-nav a { color: rgba(255,255,255,0.75); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+.admin-nav a[aria-current="page"] { color: #fff; }
+.admin-header__acoes { display: flex; gap: 8px; }
+.admin-header .botao--outline { border-color: rgba(255,255,255,0.5); color: #fff; }
+.admin-header .botao--outline:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+/* ---------- Conteúdo ---------- */
+.admin-conteudo { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+.admin-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.admin-topo h1 { font-family: var(--fonte-titulo); font-size: 1.8rem; margin: 0; color: var(--cor-texto); }
+.admin-topo select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: #fff;
+  color: var(--cor-texto);
+}
+
+/* ---------- Cards de estatística ---------- */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+@media (min-width: 700px) { .admin-stats { grid-template-columns: repeat(4, 1fr); } }
+.admin-stat-card {
+  background: #fff;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  text-align: center;
+  min-width: 0;
+}
+.admin-stat-card__numero {
+  display: block;
+  font-family: var(--fonte-titulo);
+  font-size: 2rem;
+  color: var(--cor-primaria);
+}
+.admin-stat-card__rotulo { font-size: 0.82rem; color: var(--cor-texto-claro); }
+
+/* ---------- Gráfico e tabela ---------- */
+.admin-grafico-caixa, .admin-tabela-caixa {
+  background: #fff;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.admin-grafico-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.admin-grafico-cabecalho h2, .admin-tabela-caixa h2 {
+  font-family: var(--fonte-titulo);
+  font-size: 1.2rem;
+  margin: 0;
+  color: var(--cor-texto);
+}
+
+.admin-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--cor-borda);
+  background: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--cor-texto-claro);
+  opacity: 0.45;
+  transition: opacity .15s ease, border-color .15s ease;
+}
+.admin-toggle::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--cor-serie);
+  flex-shrink: 0;
+}
+.admin-toggle--ativo { opacity: 1; color: var(--cor-texto); border-color: var(--cor-serie); }
+
+.admin-tabela-scroll { overflow-x: auto; }
+.admin-tabela { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.admin-tabela th, .admin-tabela td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--cor-borda);
+  white-space: nowrap;
+}
+.admin-tabela td:nth-child(3) { white-space: normal; min-width: 220px; }
+.admin-tabela th {
+  color: var(--cor-texto-claro);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}

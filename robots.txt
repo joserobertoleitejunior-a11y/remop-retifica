@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /admin.html
 
 Sitemap: https://joserobertoleitejunior-a11y.github.io/remop-retifica/sitemap.xml

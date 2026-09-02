@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin — Remop Retífica</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body class="admin-body">
+
+<!-- ===================== LOGIN ===================== -->
+<div class="admin-login" data-admin-login>
+  <form class="admin-login__caixa" data-form-login novalidate>
+    <img class="admin-login__logo" src="assets/img/logo-remop.png" alt="Remop Retífica de Motores e Auto Peças" width="220" height="42">
+    <h1>Painel administrativo</h1>
+    <p>Acesso restrito à equipe Remop.</p>
+
+    <div class="campo">
+      <label for="login-email">E-mail</label>
+      <input id="login-email" name="email" type="email" required autocomplete="username">
+    </div>
+    <div class="campo">
+      <label for="login-senha">Senha</label>
+      <input id="login-senha" name="senha" type="password" required autocomplete="current-password">
+    </div>
+    <button class="botao botao--primario botao--bloco" type="submit">Entrar</button>
+    <p class="mensagem-status" data-status-login></p>
+  </form>
+</div>
+
+<!-- ===================== PAINEL ===================== -->
+<div class="admin-painel" data-admin-painel hidden>
+  <header class="admin-header">
+    <a class="admin-header__logo" href="index.html">
+      <img src="assets/img/logo-remop.png" alt="Remop Retífica de Motores e Auto Peças" width="160" height="30">
+    </a>
+
+    <nav class="admin-nav">
+      <a href="#dashboard" aria-current="page">Dashboard</a>
+    </nav>
+
+    <div class="admin-header__acoes">
+      <a class="botao botao--outline botao--sm" href="index.html">← Voltar ao site</a>
+      <button class="botao botao--outline botao--sm" type="button" data-sair>Sair</button>
+    </div>
+  </header>
+
+  <main class="admin-conteudo" id="dashboard">
+    <div class="admin-topo">
+      <h1>Dashboard</h1>
+      <select data-periodo aria-label="Período do dashboard">
+        <option value="7">Últimos 7 dias</option>
+        <option value="30" selected>Últimos 30 dias</option>
+        <option value="90">Últimos 90 dias</option>
+      </select>
+    </div>
+
+    <div class="admin-stats">
+      <div class="admin-stat-card">
+        <span class="admin-stat-card__numero" data-stat="visitantes">–</span>
+        <span class="admin-stat-card__rotulo">Visitantes (portão)</span>
+      </div>
+      <div class="admin-stat-card">
+        <span class="admin-stat-card__numero" data-stat="agendamentos">–</span>
+        <span class="admin-stat-card__rotulo">Agendamentos</span>
+      </div>
+      <div class="admin-stat-card">
+        <span class="admin-stat-card__numero" data-stat="cliques">–</span>
+        <span class="admin-stat-card__rotulo">Cliques em CTAs</span>
+      </div>
+      <div class="admin-stat-card">
+        <span class="admin-stat-card__numero" data-stat="perguntas">–</span>
+        <span class="admin-stat-card__rotulo">Perguntas à IA</span>
+      </div>
+    </div>
+
+    <div class="admin-grafico-caixa">
+      <div class="admin-grafico-cabecalho">
+        <h2>Movimento no período</h2>
+        <div class="admin-toggles">
+          <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="visitantes" style="--cor-serie:#1E2E63">Visitantes</button>
+          <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="agendamentos" style="--cor-serie:#1f8a4c">Agendamentos</button>
+          <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="cliques" style="--cor-serie:#D9A916">Cliques</button>
+          <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="perguntas" style="--cor-serie:#c0392b">Perguntas IA</button>
+        </div>
+      </div>
+      <canvas data-admin-canvas height="300" role="img" aria-label="Gráfico de movimento no período"></canvas>
+    </div>
+
+    <div class="admin-tabela-caixa">
+      <h2>Últimas perguntas feitas à IA</h2>
+      <div class="admin-tabela-scroll">
+        <table class="admin-tabela" data-tabela-perguntas>
+          <thead><tr><th>Quando</th><th>Página</th><th>Pergunta</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/firebase-init.js"></script>
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
