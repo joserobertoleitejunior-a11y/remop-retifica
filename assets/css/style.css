@@ -44,7 +44,8 @@
 .grid-galeria-real > *,
 .lista-facilidades > li,
 .localizacao__grid > *,
-.rodape__grid > * {
+.rodape__grid > *,
+.prova-rapida__grid > * {
   min-width: 0;
 }
 
@@ -388,6 +389,67 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 }
 .hero__texto { color: rgba(255,255,255,0.88); font-size: 1.05rem; }
 .hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+
+/* ---------- Prova rápida ----------
+   Faixa fina logo abaixo do hero com os 3 números que mais pesam da
+   página Institucional (geração de clientes, tempo de casa, prova
+   social real) — sem duplicar a página inteira, só emprestando a
+   credibilidade pra quem não vai rolar até lá embaixo. */
+.prova-rapida { background: var(--cor-primaria); padding: 22px 0; }
+.prova-rapida__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: center;
+  text-align: center;
+}
+.prova-rapida__item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.prova-rapida__numero {
+  font-family: 'Rajdhani', var(--fonte-titulo);
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--cor-acento);
+  line-height: 1;
+}
+.prova-rapida__rotulo {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.3;
+}
+.prova-rapida__link {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  text-decoration: none;
+  font-family: var(--fonte-titulo);
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  transition: color .25s var(--transicao-suave);
+}
+.prova-rapida__link:hover { color: var(--cor-acento); }
+.prova-rapida__link .botao__seta { transition: transform .2s ease; }
+.prova-rapida__link:hover .botao__seta { transform: translateX(3px); }
+
+@media (min-width: 700px) {
+  .prova-rapida__grid { grid-template-columns: repeat(3, auto) 1fr; gap: 48px; text-align: left; }
+  .prova-rapida__item { align-items: flex-start; }
+  .prova-rapida__numero { font-size: 2.2rem; }
+  .prova-rapida__rotulo { max-width: 16ch; }
+  .prova-rapida__link {
+    grid-column: auto;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    justify-content: flex-end;
+  }
+}
 
 /* ---------- Vitrine (Garagem) ----------
    Holofote estilo tela de garagem: fundo escuro em degradê radial +
