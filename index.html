@@ -341,17 +341,21 @@
 <div class="modal-overlay" data-modal-agendamento>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-agendamento">
     <button class="modal__fechar" type="button" data-fechar-modal aria-label="Fechar formulário">×</button>
-    <h2 id="titulo-modal-agendamento">Agendar avaliação</h2>
-    <p>Preencha seus dados — a gente confirma o horário com você pelo WhatsApp.</p>
+
+    <div class="modal__cabecalho">
+      <span class="eyebrow">Sem compromisso</span>
+      <h2 id="titulo-modal-agendamento">Agendar avaliação</h2>
+      <p>Preencha seus dados — a gente confirma o horário com você pelo WhatsApp.</p>
+    </div>
 
     <form data-form-agendamento novalidate>
       <div class="campo">
         <label for="campo-nome">Nome</label>
-        <input id="campo-nome" name="nome" type="text" required>
+        <input id="campo-nome" name="nome" type="text" required placeholder="Seu nome completo" autocomplete="name">
       </div>
       <div class="campo">
         <label for="campo-telefone">Telefone / WhatsApp</label>
-        <input id="campo-telefone" name="telefone" type="tel" required>
+        <input id="campo-telefone" name="telefone" type="tel" required placeholder="(15) 90000-0000" autocomplete="tel">
       </div>
       <div class="campo">
         <label for="campo-servico">Serviço de interesse</label>
@@ -368,9 +372,13 @@
       </div>
       <div class="campo">
         <label for="campo-mensagem">Conte o que está acontecendo (opcional)</label>
-        <textarea id="campo-mensagem" name="mensagem"></textarea>
+        <textarea id="campo-mensagem" name="mensagem" placeholder="Ex: motor fazendo barulho ao acelerar, luz de óleo acesa..."></textarea>
       </div>
-      <button class="botao botao--primario botao--bloco" type="submit">Enviar e continuar no WhatsApp</button>
+      <button class="botao botao--primario botao--bloco" type="submit">
+        Enviar e continuar no WhatsApp
+        <span class="botao__seta" aria-hidden="true">→</span>
+      </button>
+      <p class="modal__aviso">Sem taxa, sem compromisso — só confirmamos o horário com você.</p>
       <p class="mensagem-status" data-status-agendamento></p>
     </form>
   </div>
