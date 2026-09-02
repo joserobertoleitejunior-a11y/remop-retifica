@@ -397,53 +397,60 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   }
 }
 
-/* Selo clicável sobre a foto da fachada — abre o popup com todos os
-   contatos e redes sociais. Fica perto de onde a placa da REMOP
-   aparece na foto (no mobile, que mostra a foto quase inteira). */
-.hero__hotspot {
+/* Faixa de ícones passando sobre a foto da fachada — fundo
+   transparente, só os ícones (contatos, redes sociais e o assistente
+   de IA) rolando em loop; cada um já é um link/atalho direto,
+   clicável, sem abrir popup nenhum. */
+.hero__faixa-contatos {
   position: absolute;
-  top: 21%;
-  left: 6%;
+  top: 19%;
+  left: 0;
+  right: 0;
   z-index: 2;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 10%, #000 90%, transparent 100%);
+}
+.hero__faixa-trilha {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px 9px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(246,201,69,0.6);
-  background: rgba(15,22,46,0.55);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  gap: 34px;
+  width: max-content;
+  padding: 4px 0;
+  animation: faixa-rolar 26s linear infinite;
+}
+.hero__faixa-contatos:hover .hero__faixa-trilha,
+.hero__faixa-contatos:focus-within .hero__faixa-trilha {
+  animation-play-state: paused;
+}
+@keyframes faixa-rolar {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.hero__faixa-icone {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
   color: #fff;
   cursor: pointer;
-  max-width: min(78vw, 300px);
-  transition: background .2s var(--transicao-suave), border-color .2s var(--transicao-suave), transform .2s var(--transicao-suave);
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.65));
+  transition: transform .2s var(--transicao-suave), color .2s var(--transicao-suave);
 }
-.hero__hotspot:hover, .hero__hotspot:focus-visible {
-  background: rgba(15,22,46,0.75);
-  border-color: var(--cor-acento);
-  transform: translateY(-1px);
-}
-.hero__hotspot svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--cor-acento); }
-.hero__hotspot-texto {
-  font-size: 0.78rem;
-  font-weight: 600;
-  line-height: 1.2;
-  text-align: left;
-  white-space: normal;
-}
-.hero__hotspot-ping {
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  border: 1px solid var(--cor-acento);
-  animation: pulso-whatsapp 2.4s ease-out infinite;
+.hero__faixa-icone svg { width: 26px; height: 26px; }
+.hero__faixa-icone:hover, .hero__faixa-icone:focus-visible {
+  color: var(--cor-acento);
+  transform: translateY(-3px) scale(1.15);
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero__hotspot-ping { animation: none; }
+  .hero__faixa-trilha { animation: none; }
 }
 @media (min-width: 900px) {
-  .hero__hotspot { top: 14%; left: 5%; }
+  .hero__faixa-contatos { top: 5%; }
 }
 
 /* Hero das páginas secundárias (Institucional) — mesma receita da home,
@@ -1121,7 +1128,9 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: #fff;
+  background: rgba(255,255,255,0.14);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
   border: 1.5px solid var(--cor-acento-escuro);
   color: var(--cor-primaria);
   display: flex;
@@ -1133,10 +1142,10 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 }
 .whatsapp-flutuante:hover {
   transform: scale(1.08) translateY(-2px);
+  background: rgba(255,255,255,0.26);
   box-shadow: 0 16px 34px -10px rgba(30,46,99,0.45);
 }
-.whatsapp-flutuante svg { color: #25D366; }
-.whatsapp-flutuante svg { width: 26px; height: 26px; z-index: 1; }
+.whatsapp-flutuante svg { color: #25D366; width: 32px; height: 32px; z-index: 1; }
 .whatsapp-flutuante::before {
   content: '';
   position: absolute;

@@ -81,10 +81,6 @@
       document.querySelector("[data-modal-agendamento]"),
       document.querySelectorAll("[data-abrir-agendamento]")
     );
-    configurarModal(
-      document.querySelector("[data-modal-contatos]"),
-      document.querySelectorAll("[data-abrir-contatos]")
-    );
   }
 
   /**
