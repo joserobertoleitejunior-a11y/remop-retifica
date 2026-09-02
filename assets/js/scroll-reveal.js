@@ -54,32 +54,37 @@
     return elemento.querySelectorAll(".letra-montavel");
   }
 
+  /**
+   * Título entra vindo da esquerda (letra a letra, em ordem) conforme
+   * a página desce até ele, e sai pela direita conforme a página
+   * continua descendo e o título vai saindo da tela por cima — preso
+   * ao scroll (scrub), então rolar pra cima desfaz o movimento.
+   */
   function montarDesmontarAoRolar(seletor) {
     var elementos = gsap.utils.toArray(seletor);
     elementos.forEach(function (elemento) {
       var letras = dividirEmLetras(elemento);
       if (!letras.length) return;
 
-      gsap.set(letras, {
-        x: function () { return gsap.utils.random(-70, 70); },
-        y: function () { return gsap.utils.random(-50, 50); },
-        rotation: function () { return gsap.utils.random(-40, 40); },
-        opacity: 0.1,
-      });
-
-      gsap.to(letras, {
-        x: 0,
-        y: 0,
-        rotation: 0,
-        opacity: 1,
-        ease: "power1.out",
-        stagger: { each: 0.015, from: "random" },
+      var tl = gsap.timeline({
         scrollTrigger: {
           trigger: elemento,
-          start: "top 92%",
-          end: "top 38%",
-          scrub: 0.6,
+          start: "top 95%",
+          end: "bottom 10%",
+          scrub: 0.5,
         },
+      });
+
+      tl.from(letras, {
+        x: -60,
+        opacity: 0,
+        ease: "none",
+        stagger: 0.02,
+      }).to(letras, {
+        x: 60,
+        opacity: 0,
+        ease: "none",
+        stagger: 0.02,
       });
     });
   }
@@ -153,6 +158,24 @@
     revelarAoRolar(".vitrine__carro", { scale: 0.92, y: 0, duration: 0.8 });
     revelarAoRolar(".localizacao__mapa", { x: -24, y: 0, duration: 0.8 });
     revelarAoRolar(".localizacao__info", { x: 24, y: 0, duration: 0.8 });
+
+    // Foto de fundo da hero desfoca e desaparece conforme desce o
+    // scroll (preso à posição — sobe de novo se o visitante voltar).
+    var heroFoto = document.querySelector(".hero__foto");
+    if (heroFoto) {
+      gsap.to(heroFoto, {
+        opacity: 0.15,
+        filter: "blur(18px)",
+        scale: 1.12,
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".hero",
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.4,
+        },
+      });
+    }
 
     // Entrada da hero, direto ao carregar (sem depender de scroll) —
     // o título já foi tratado por montarDesmontarAoRolar acima.

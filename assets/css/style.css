@@ -190,9 +190,10 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 12px 20px;
+  gap: 10px;
+  padding: 10px 14px;
 }
+@media (min-width: 640px) { .cabecalho__conteudo { gap: 16px; padding: 12px 20px; } }
 .cabecalho__logo {
   display: flex;
   align-items: center;
@@ -201,8 +202,10 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   font-size: 1.1rem;
   text-decoration: none;
   color: #fff;
+  flex-shrink: 0;
 }
-.cabecalho__logo img { height: 36px; width: auto; }
+.cabecalho__logo img { height: 28px; width: auto; }
+@media (min-width: 640px) { .cabecalho__logo img { height: 36px; } }
 
 .cabecalho__contato {
   display: none;
@@ -214,7 +217,23 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   text-decoration: none;
 }
 
-.cabecalho__acoes { display: flex; align-items: center; gap: 12px; }
+.cabecalho__acoes { display: flex; align-items: center; gap: 8px; }
+
+/* Botão de CTA do header precisa caber ao lado da logo mesmo na tela
+   mais estreita — sem isso ele quebra em duas linhas e estoura a
+   barra (bug visto no celular). */
+.cabecalho .botao--primario {
+  padding: 8px 12px;
+  font-size: 0.66rem;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+@media (min-width: 420px) {
+  .cabecalho .botao--primario { padding: 10px 16px; font-size: 0.74rem; }
+}
+@media (min-width: 640px) {
+  .cabecalho .botao--primario { padding: 13px 22px; font-size: 0.9rem; }
+}
 
 .menu-toggle {
   background: none;
@@ -282,14 +301,8 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   inset: 0;
   background: url('../img/hero-oficina-remop.jpg') center 40% / cover no-repeat;
   z-index: 0;
-  animation: hero-zoom-lento 26s ease-in-out infinite alternate;
-}
-@keyframes hero-zoom-lento {
-  from { transform: scale(1); }
-  to { transform: scale(1.08); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero__foto { animation: none; }
+  transform-origin: center center;
+  will-change: transform, filter, opacity;
 }
 .hero__foto::after {
   content: '';
@@ -459,15 +472,28 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 }
 .card-depoimento:hover::before { transform: scaleX(1); }
 .card-depoimento__numero {
-  font-family: var(--fonte-titulo);
-  font-size: 2.4rem;
+  font-family: 'Rajdhani', var(--fonte-titulo);
+  font-size: 2.6rem;
   font-weight: 700;
   color: var(--cor-acento-escuro);
   line-height: 1;
   margin-bottom: 10px;
+  letter-spacing: 0.02em;
 }
 .card-depoimento h3 { font-size: 1.05rem; }
 .card-depoimento .botao { margin-top: 12px; }
+
+/* Citação em estilo "escrito à mão" — quebra o padrão técnico do
+   resto do site num ponto só, pra soar como fala real de cliente. */
+.citacao-manuscrita {
+  font-family: 'Kalam', cursive;
+  font-size: 1.15rem !important;
+  color: var(--cor-primaria) !important;
+  font-weight: 700;
+  max-width: 46ch;
+  margin-left: auto;
+  margin-right: auto;
+}
 
 .grid-galeria-real {
   display: grid;
@@ -505,6 +531,7 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   color: var(--cor-primaria);
   background: #fff;
 }
+.selo-plataforma svg { width: 18px; height: 18px; color: var(--cor-acento-escuro); flex-shrink: 0; }
 .selo-plataforma:hover { border-color: var(--cor-acento); }
 
 /* ---------- Facilidades ---------- */
@@ -535,14 +562,20 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   gap: 14px;
   justify-content: center;
 }
+.chip-pagamento__icone {
+  width: 34px;
+  height: auto;
+  color: var(--cor-acento-escuro);
+  flex-shrink: 0;
+}
 .chip-pagamento {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: #fff;
   border: 1px solid var(--cor-borda);
   border-radius: 999px;
-  padding: 10px 18px;
+  padding: 8px 18px 8px 10px;
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -581,7 +614,12 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .rodape a { color: rgba(255,255,255,0.85); text-decoration: none; }
 .rodape a:hover { color: #fff; text-decoration: underline; }
 .rodape__redes { display: flex; gap: 14px; margin-top: 10px; }
-.rodape__redes a { display: inline-flex; }
+.rodape__redes a {
+  display: inline-flex;
+  color: var(--cor-acento);
+  transition: color .2s ease, transform .2s ease;
+}
+.rodape__redes a:hover { color: #fff; transform: translateY(-2px); }
 .rodape__base {
   margin-top: 28px;
   padding-top: 18px;
