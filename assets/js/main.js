@@ -76,10 +76,41 @@
     });
   }
 
+  /**
+   * Facilidades (Banheiros, Estacionamento, etc.) em institucional.html:
+   * clica e abre uma descrição embaixo; clicar em outro item fecha o
+   * anterior automaticamente (só um aberto por vez).
+   */
+  function iniciarAcordeaoFacilidades() {
+    var lista = document.querySelector("[data-acordeao-facilidades]");
+    if (!lista) return;
+
+    var cabecalhos = lista.querySelectorAll(".facilidade__cabecalho");
+
+    cabecalhos.forEach(function (cabecalho) {
+      var detalhe = cabecalho.nextElementSibling;
+
+      cabecalho.addEventListener("click", function () {
+        var jaAberto = cabecalho.getAttribute("aria-expanded") === "true";
+
+        cabecalhos.forEach(function (outro) {
+          outro.setAttribute("aria-expanded", "false");
+          outro.nextElementSibling.hidden = true;
+        });
+
+        if (!jaAberto) {
+          cabecalho.setAttribute("aria-expanded", "true");
+          detalhe.hidden = false;
+        }
+      });
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     preencherLinksWhatsApp();
     iniciarMenuMobile();
     iniciarModalAgendamento();
+    iniciarAcordeaoFacilidades();
   });
 
   window.RemopWhatsApp = { montarLink: montarLinkWhatsApp };

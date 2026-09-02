@@ -26,6 +26,20 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Item de grid tem min-width:auto por padrão no CSS Grid — isso deixa o
+   conteúdo (texto longo, etc.) forçar a coluna a ficar mais larga que o
+   previsto e desalinhar a grade em telas largas. Zerando aqui pra todo
+   mundo respeitar a coluna e quebrar linha normalmente. */
+.grid-servicos > *,
+.grid-diferenciais > *,
+.grid-depoimentos > *,
+.grid-galeria-real > *,
+.lista-facilidades > li,
+.localizacao__grid > *,
+.rodape__grid > * {
+  min-width: 0;
+}
+
 html { scroll-behavior: smooth; }
 
 a:focus-visible,
@@ -218,6 +232,23 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 }
 
 .cabecalho__acoes { display: flex; align-items: center; gap: 8px; }
+
+.cabecalho__bot {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .2s ease, border-color .2s ease;
+}
+.cabecalho__bot:hover { background: rgba(255,255,255,0.14); border-color: #fff; }
+.cabecalho__bot svg { width: 17px; height: 17px; }
 
 /* Botão de CTA do header precisa caber ao lado da logo mesmo na tela
    mais estreita — sem isso ele quebra em duas linhas e estoura a
@@ -577,23 +608,48 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 }
 @media (min-width: 700px) { .lista-facilidades { grid-template-columns: repeat(2, 1fr); } }
 .lista-facilidades li {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
   background: #fff;
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio);
-  padding: 16px 18px;
+  overflow: hidden;
 }
-.lista-facilidades li svg { flex-shrink: 0; width: 24px; height: 24px; color: var(--cor-sucesso); }
+.facilidade__cabecalho {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 16px 18px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.facilidade__cabecalho svg { flex-shrink: 0; width: 24px; height: 24px; color: var(--cor-sucesso); }
+.facilidade__seta {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--cor-texto-claro);
+  transition: transform .2s ease;
+}
+.facilidade__cabecalho[aria-expanded="true"] .facilidade__seta { transform: rotate(90deg); }
+.facilidade__detalhe { padding: 0 18px 16px 54px; }
+.facilidade__detalhe p { margin: 0; font-size: 0.9rem; color: var(--cor-texto-claro); line-height: 1.5; }
 
 /* ---------- Pagamento ---------- */
+/* Grade real (não flex-wrap com justify-center) — bandeiras com nomes de
+   tamanhos bem diferentes ("Elo" x "American Express") formavam linhas
+   de larguras desiguais e ficavam com o visual desalinhado/torto. */
 .grid-pagamento {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 14px;
-  justify-content: center;
+  max-width: 640px;
+  margin: 0 auto;
 }
+@media (min-width: 560px) { .grid-pagamento { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 800px) { .grid-pagamento { grid-template-columns: repeat(4, 1fr); max-width: 820px; } }
 .chip-pagamento__icone {
   width: 34px;
   height: auto;
@@ -601,15 +657,18 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   flex-shrink: 0;
 }
 .chip-pagamento {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  min-width: 0;
   background: #fff;
   border: 1px solid var(--cor-borda);
   border-radius: 999px;
-  padding: 8px 18px 8px 10px;
+  padding: 10px 16px 10px 10px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  text-align: center;
 }
 
 /* ---------- Localização ---------- */
@@ -633,7 +692,8 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .rodape {
   background: var(--cor-primaria);
   color: rgba(255,255,255,0.85);
-  padding: 40px 0 20px;
+  padding: 40px 0 90px;
+  overflow-wrap: break-word;
 }
 .rodape__grid {
   display: grid;
