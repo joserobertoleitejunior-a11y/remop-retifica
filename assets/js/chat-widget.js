@@ -1,5 +1,11 @@
 /**
- * Widget de atendimento (bot) da Remop.
+ * Widget de diagnóstico (bot) da Remop.
+ *
+ * Não é um chat livre: conduz um passo a passo — pergunta uma coisa de
+ * cada vez sobre o carro, avisa quando vai pesquisar na internet antes
+ * de responder, e fecha com uma suspeita de diagnóstico + um botão pra
+ * mandar só o resumo importante pro WhatsApp da equipe (não a conversa
+ * inteira).
  *
  * Enquanto o site roda só no GitHub Pages, a Netlify Function não existe,
  * então a primeira chamada falha e o widget cai automaticamente no
@@ -13,6 +19,7 @@
   var historico = [];
   var elementos = {};
   var modoFallbackAtivo = false;
+  var diagnosticoResumo = null;
 
   function criarBolha(texto, tipo) {
     var bolha = document.createElement("div");
@@ -26,6 +33,49 @@
     elementos.mensagens.appendChild(bolha);
     elementos.mensagens.scrollTop = elementos.mensagens.scrollHeight;
     return bolha;
+  }
+
+  function adicionarPesquisando(texto) {
+    var bolha = document.createElement("div");
+    bolha.className = "chat-widget__bolha chat-widget__bolha--pesquisando";
+    var indicador = document.createElement("span");
+    indicador.className = "chat-widget__pesquisando-icone";
+    bolha.appendChild(indicador);
+    bolha.appendChild(document.createTextNode(texto));
+    elementos.mensagens.appendChild(bolha);
+    elementos.mensagens.scrollTop = elementos.mensagens.scrollHeight;
+    return bolha;
+  }
+
+  function adicionarDiagnostico(texto, resumoWhatsapp) {
+    diagnosticoResumo = resumoWhatsapp;
+
+    var card = document.createElement("div");
+    card.className = "chat-widget__diagnostico";
+
+    var paragrafo = document.createElement("p");
+    paragrafo.textContent = texto;
+    card.appendChild(paragrafo);
+
+    if (resumoWhatsapp) {
+      var identidade = (window.RemopIdentidade && window.RemopIdentidade.obter()) || {};
+      var partes = [];
+      if (identidade.nome) partes.push("Nome: " + identidade.nome);
+      if (identidade.whatsapp) partes.push("WhatsApp: " + identidade.whatsapp);
+      partes.push(resumoWhatsapp);
+
+      var link = document.createElement("a");
+      link.className = "botao botao--whatsapp botao--bloco";
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.href = (window.RemopWhatsApp ? window.RemopWhatsApp.montarLink(partes.join("\n")) : "#");
+      link.textContent = "Enviar resumo pro WhatsApp";
+      card.appendChild(link);
+    }
+
+    elementos.mensagens.appendChild(card);
+    elementos.mensagens.scrollTop = elementos.mensagens.scrollHeight;
+    return card;
   }
 
   function mostrarDigitando() {
@@ -48,17 +98,22 @@
     );
 
     elementos.form.hidden = true;
+    elementos.identidade.hidden = true;
     elementos.fallback.hidden = false;
   }
 
-  async function enviarParaBot(mensagemUsuario) {
+  async function chamarBot(modo, mensagemUsuario) {
     var config = window.REMOP_CONFIG || {};
+    var identidade = (window.RemopIdentidade && window.RemopIdentidade.obter()) || {};
+
     var resposta = await fetch(config.chatBotEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        mensagem: mensagemUsuario,
+        mensagem: mensagemUsuario || "",
         historico: historico,
+        modo: modo,
+        identidade: identidade,
       }),
     });
 
@@ -66,8 +121,42 @@
       throw new Error("Endpoint do bot indisponível (" + resposta.status + ")");
     }
 
-    var dados = await resposta.json();
-    return dados.resposta;
+    return resposta.json();
+  }
+
+  /**
+   * Processa a resposta do bot conforme a fase e, no caso de
+   * "pesquisando", encadeia automaticamente uma segunda chamada (modo
+   * "pesquisar") pra buscar de verdade — só depois de já ter avisado o
+   * cliente que ia pesquisar.
+   */
+  async function processarResposta(dados, jaEncadeou) {
+    if (dados.fase === "pesquisando") {
+      adicionarPesquisando(dados.resposta);
+      historico.push({ papel: "bot", texto: dados.resposta });
+
+      if (jaEncadeou) return; // evita loop caso o modelo anuncie de novo
+
+      var indicador = mostrarDigitando();
+      try {
+        var proximaResposta = await chamarBot("pesquisar", "");
+        indicador.remove();
+        await processarResposta(proximaResposta, true);
+      } catch (erro) {
+        indicador.remove();
+        throw erro;
+      }
+      return;
+    }
+
+    if (dados.fase === "diagnostico") {
+      adicionarDiagnostico(dados.resposta, dados.resumoWhatsapp);
+      historico.push({ papel: "bot", texto: dados.resposta });
+      return;
+    }
+
+    adicionarMensagem(dados.resposta, "bot");
+    historico.push({ papel: "bot", texto: dados.resposta });
   }
 
   async function tratarEnvio(evento) {
@@ -83,10 +172,9 @@
     var indicador = mostrarDigitando();
 
     try {
-      var respostaBot = await enviarParaBot(texto);
+      var dados = await chamarBot("normal", texto);
       indicador.remove();
-      adicionarMensagem(respostaBot, "bot");
-      historico.push({ papel: "bot", texto: respostaBot });
+      await processarResposta(dados, false);
     } catch (erro) {
       indicador.remove();
       console.warn("[Remop] Bot indisponível, ativando fallback pro WhatsApp:", erro.message);
@@ -96,15 +184,57 @@
     }
   }
 
-  function alternarPainel() {
-    var aberto = elementos.painel.classList.toggle("aberto");
-    elementos.botaoAbrir.setAttribute("aria-expanded", aberto ? "true" : "false");
-    if (aberto && !elementos.mensagens.childElementCount) {
-      adicionarMensagem(
-        "Olá! Posso te ajudar a entender qual serviço você precisa. No fim, te conecto com um atendente humano no WhatsApp para fechar o orçamento.",
-        "bot"
-      );
+  function iniciarConversa() {
+    if (elementos.mensagens.childElementCount) return;
+    adicionarMensagem(
+      "Vamos fazer um diagnóstico rápido. O que está acontecendo com o seu carro?",
+      "bot"
+    );
+    elementos.input.focus();
+  }
+
+  function tratarEnvioIdentidade(evento) {
+    evento.preventDefault();
+    var nome = elementos.identidadeNome.value.trim();
+    var whatsapp = elementos.identidadeWhatsapp.value.trim();
+
+    if (!nome || whatsapp.replace(/\D/g, "").length < 10) {
+      elementos.identidadeNome.reportValidity();
+      return;
     }
+
+    window.RemopIdentidade.salvar({ nome: nome, whatsapp: whatsapp });
+
+    elementos.identidade.hidden = true;
+    elementos.form.hidden = false;
+    iniciarConversa();
+  }
+
+  function abrirPainel() {
+    elementos.painel.classList.add("aberto");
+    document.querySelectorAll("[data-chat-abrir]").forEach(function (botao) {
+      botao.setAttribute("aria-expanded", "true");
+    });
+
+    if (elementos.painelIniciado) return;
+    elementos.painelIniciado = true;
+
+    var identidade = (window.RemopIdentidade && window.RemopIdentidade.obter()) || {};
+    if (!identidade.nome || !identidade.whatsapp) {
+      elementos.identidade.hidden = false;
+      elementos.form.hidden = true;
+      var primeiroCampo = elementos.identidade.querySelector("input");
+      if (primeiroCampo) primeiroCampo.focus();
+    } else {
+      iniciarConversa();
+    }
+  }
+
+  function fecharPainel() {
+    elementos.painel.classList.remove("aberto");
+    document.querySelectorAll("[data-chat-abrir]").forEach(function (botao) {
+      botao.setAttribute("aria-expanded", "false");
+    });
   }
 
   function iniciar() {
@@ -112,19 +242,25 @@
     if (!raiz) return;
 
     elementos = {
-      botaoAbrir: raiz.querySelector("[data-chat-abrir]"),
       painel: raiz.querySelector("[data-chat-painel]"),
       fechar: raiz.querySelector("[data-chat-fechar]"),
       mensagens: raiz.querySelector("[data-chat-mensagens]"),
+      identidade: raiz.querySelector("[data-chat-identidade]"),
+      identidadeNome: raiz.querySelector("[data-chat-identidade-nome]"),
+      identidadeWhatsapp: raiz.querySelector("[data-chat-identidade-whatsapp]"),
       form: raiz.querySelector("[data-chat-form]"),
       input: raiz.querySelector("[data-chat-input]"),
       enviar: raiz.querySelector("[data-chat-enviar]"),
       fallback: raiz.querySelector("[data-chat-fallback]"),
+      painelIniciado: false,
     };
 
-    elementos.botaoAbrir.addEventListener("click", alternarPainel);
-    elementos.fechar.addEventListener("click", alternarPainel);
+    document.querySelectorAll("[data-chat-abrir]").forEach(function (botao) {
+      botao.addEventListener("click", abrirPainel);
+    });
+    elementos.fechar.addEventListener("click", fecharPainel);
     elementos.form.addEventListener("submit", tratarEnvio);
+    elementos.identidade.addEventListener("submit", tratarEnvioIdentidade);
   }
 
   document.addEventListener("DOMContentLoaded", iniciar);

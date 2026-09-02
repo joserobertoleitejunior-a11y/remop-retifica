@@ -83,6 +83,9 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         (15) 99695-4644
       </a>
+      <button class="cabecalho__bot" type="button" data-chat-abrir aria-controls="painel-chat-remop" aria-label="Diagnóstico com IA">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4A9 9 0 0 1 8 19l-5 1 1.4-4.3A8.4 8.4 0 1 1 21 11.5z"/></svg>
+      </button>
       <a class="botao botao--primario" data-abrir-agendamento href="#" role="button">Agendar avaliação</a>
       <button class="menu-toggle" type="button" aria-controls="nav-principal" aria-expanded="false" aria-label="Abrir menu">☰</button>
     </div>
@@ -185,7 +188,17 @@
           Facebook
         </a>
         <a class="selo-plataforma" href="https://www.solutudo.com.br/" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="solutudo-marca" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#E93D82"/>
+                <stop offset="35%" stop-color="#8B3FE8"/>
+                <stop offset="70%" stop-color="#F5A623"/>
+                <stop offset="100%" stop-color="#3DBE64"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#solutudo-marca)" d="M12 2C6.9 2 3 5.6 3 10.2c0 3.9 2.9 7.7 9 11.6 6.1-3.9 9-7.7 9-11.6C21 5.6 17.1 2 12 2z"/>
+          </svg>
           SoluTudo · 6 recomendações reais
         </a>
       </div>
@@ -197,30 +210,66 @@
     <div class="container">
       <span class="eyebrow" style="display:flex; justify-content:center;">Estrutura</span>
       <h2 class="secao__titulo">Facilidades pra você</h2>
-      <ul class="lista-facilidades">
+      <ul class="lista-facilidades" data-acordeao-facilidades>
         <li>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
-          <div><strong>Banheiros</strong></div>
+          <button class="facilidade__cabecalho" type="button" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
+            <strong>Banheiros</strong>
+            <span class="facilidade__seta" aria-hidden="true">→</span>
+          </button>
+          <div class="facilidade__detalhe" hidden>
+            <p>Banheiro disponível pra você usar à vontade enquanto aguarda o atendimento.</p>
+          </div>
         </li>
         <li>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 17h14M5 17a2 2 0 0 1-2-2v-3l2-5h14l2 5v3a2 2 0 0 1-2 2M7 17v3M17 17v3"/><circle cx="7.5" cy="14.5" r="1"/><circle cx="16.5" cy="14.5" r="1"/></svg>
-          <div><strong>Estacionamento</strong></div>
+          <button class="facilidade__cabecalho" type="button" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 17h14M5 17a2 2 0 0 1-2-2v-3l2-5h14l2 5v3a2 2 0 0 1-2 2M7 17v3M17 17v3"/><circle cx="7.5" cy="14.5" r="1"/><circle cx="16.5" cy="14.5" r="1"/></svg>
+            <strong>Estacionamento</strong>
+            <span class="facilidade__seta" aria-hidden="true">→</span>
+          </button>
+          <div class="facilidade__detalhe" hidden>
+            <p>Vaga pra deixar o carro com segurança enquanto cuidamos do seu veículo.</p>
+          </div>
         </li>
         <li>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V10l7-6 7 6v11"/></svg>
-          <div><strong>Estacionamento coberto</strong></div>
+          <button class="facilidade__cabecalho" type="button" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 21h18M5 21V10l7-6 7 6v11"/></svg>
+            <strong>Estacionamento coberto</strong>
+            <span class="facilidade__seta" aria-hidden="true">→</span>
+          </button>
+          <div class="facilidade__detalhe" hidden>
+            <p>Área coberta pra proteger seu carro do sol e da chuva durante a visita.</p>
+          </div>
         </li>
         <li>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          <div><strong>Sala de espera</strong></div>
+          <button class="facilidade__cabecalho" type="button" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <strong>Sala de espera</strong>
+            <span class="facilidade__seta" aria-hidden="true">→</span>
+          </button>
+          <div class="facilidade__detalhe" hidden>
+            <p>Espaço confortável pra você aguardar com tranquilidade enquanto o carro é avaliado.</p>
+          </div>
         </li>
         <li>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
-          <div><strong>Wi-Fi</strong></div>
+          <button class="facilidade__cabecalho" type="button" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+            <strong>Wi-Fi</strong>
+            <span class="facilidade__seta" aria-hidden="true">→</span>
+          </button>
+          <div class="facilidade__detalhe" hidden>
+            <p>Conexão liberada pra você continuar seus compromissos enquanto espera.</p>
+          </div>
         </li>
         <li>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3l4 4-4 4M21 7H9M7 21l-4-4 4-4M3 17h12"/></svg>
-          <div><strong>Leva e traz</strong></div>
+          <button class="facilidade__cabecalho" type="button" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M17 3l4 4-4 4M21 7H9M7 21l-4-4 4-4M3 17h12"/></svg>
+            <strong>Leva e traz</strong>
+            <span class="facilidade__seta" aria-hidden="true">→</span>
+          </button>
+          <div class="facilidade__detalhe" hidden>
+            <p>Buscamos e levamos você enquanto o serviço é feito — combine o horário direto com a equipe.</p>
+          </div>
         </li>
       </ul>
     </div>
@@ -230,29 +279,36 @@
 
 <!-- ===================== BOT / CONTATO FLUTUANTE ===================== -->
 <a class="whatsapp-flutuante" data-whatsapp-link href="#" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
-  <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 3C9 3 3.4 8.6 3.4 15.5c0 2.4.7 4.7 1.9 6.7L3 29l7-2.2c1.9 1 4 1.6 6 1.6 7 0 12.6-5.6 12.6-12.5S23 3 16 3zm0 22.7c-1.9 0-3.7-.5-5.3-1.4l-.4-.2-4.2 1.3 1.4-4.1-.2-.4c-1-1.6-1.5-3.5-1.5-5.4C5.8 9.9 10.4 5.3 16 5.3S26.2 9.9 26.2 15.5 21.6 25.7 16 25.7zm6-7.9c-.3-.2-1.9-.9-2.2-1s-.5-.2-.8.2-.9 1-1.1 1.2-.4.3-.7.1c-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.3-.2-.3 0-.5.1-.7.1-.1.3-.4.5-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.2-.8-1.9-1.1-2.6-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4S9 10.1 9 11.4c0 1.3.9 2.6 1.1 2.8.1.2 1.8 2.8 4.4 3.9.6.3 1.1.4 1.5.6.6.2 1.2.2 1.6.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.3-.2-.6-.4z"/></svg>
+  <svg viewBox="0 0 32 32" fill="#ffffff" aria-hidden="true"><path d="M16 3C9 3 3.4 8.6 3.4 15.5c0 2.4.7 4.7 1.9 6.7L3 29l7-2.2c1.9 1 4 1.6 6 1.6 7 0 12.6-5.6 12.6-12.5S23 3 16 3zm0 22.7c-1.9 0-3.7-.5-5.3-1.4l-.4-.2-4.2 1.3 1.4-4.1-.2-.4c-1-1.6-1.5-3.5-1.5-5.4C5.8 9.9 10.4 5.3 16 5.3S26.2 9.9 26.2 15.5 21.6 25.7 16 25.7zm6-7.9c-.3-.2-1.9-.9-2.2-1s-.5-.2-.8.2-.9 1-1.1 1.2-.4.3-.7.1c-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.3-.2-.3 0-.5.1-.7.1-.1.3-.4.5-.5.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.2-.8-1.9-1.1-2.6-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4S9 10.1 9 11.4c0 1.3.9 2.6 1.1 2.8.1.2 1.8 2.8 4.4 3.9.6.3 1.1.4 1.5.6.6.2 1.2.2 1.6.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.3-.2-.6-.4z"/></svg>
 </a>
 
 <div class="chat-widget" data-chat-widget>
-  <button class="chat-widget__botao" type="button" data-chat-abrir aria-expanded="false" aria-controls="painel-chat-remop" aria-label="Abrir chat de atendimento">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4A9 9 0 0 1 8 19l-5 1 1.4-4.3A8.4 8.4 0 1 1 21 11.5z"/></svg>
-  </button>
-
   <div class="chat-widget__painel" id="painel-chat-remop" data-chat-painel role="dialog" aria-label="Chat de atendimento Remop">
     <div class="chat-widget__cabecalho">
       <div>
-        <strong>Atendimento Remop</strong>
-        <span>Normalmente responde em minutos</span>
+        <strong>Diagnóstico Remop</strong>
+        <span>Passo a passo, sem enrolação</span>
       </div>
       <button class="chat-widget__fechar" type="button" data-chat-fechar aria-label="Fechar chat">×</button>
     </div>
 
     <div class="chat-widget__mensagens" data-chat-mensagens aria-live="polite"></div>
 
+    <form class="chat-widget__identidade" data-chat-identidade hidden>
+      <p>Antes de começar, como podemos te chamar?</p>
+      <label class="visually-hidden" for="chat-identidade-nome">Seu nome</label>
+      <input class="chat-widget__input" id="chat-identidade-nome" data-chat-identidade-nome type="text" placeholder="Seu nome" autocomplete="off" required>
+      <label class="visually-hidden" for="chat-identidade-whatsapp">Seu WhatsApp</label>
+      <input class="chat-widget__input" id="chat-identidade-whatsapp" data-chat-identidade-whatsapp type="tel" placeholder="Seu WhatsApp (com DDD)" autocomplete="off" required>
+      <button class="botao botao--primario botao--bloco" type="submit">Começar diagnóstico</button>
+    </form>
+
     <form class="chat-widget__form" data-chat-form>
       <label class="visually-hidden" for="chat-input">Digite sua mensagem</label>
-      <input class="chat-widget__input" id="chat-input" data-chat-input type="text" placeholder="Digite sua mensagem..." autocomplete="off" required>
-      <button class="chat-widget__enviar" type="submit" data-chat-enviar aria-label="Enviar mensagem">➤</button>
+      <input class="chat-widget__input" id="chat-input" data-chat-input type="text" placeholder="Digite sua resposta..." autocomplete="off" required>
+      <button class="chat-widget__enviar" type="submit" data-chat-enviar aria-label="Enviar mensagem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
     </form>
 
     <div class="chat-widget__fallback" data-chat-fallback hidden>
