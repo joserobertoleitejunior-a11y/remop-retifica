@@ -397,6 +397,55 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   }
 }
 
+/* Selo clicável sobre a foto da fachada — abre o popup com todos os
+   contatos e redes sociais. Fica perto de onde a placa da REMOP
+   aparece na foto (no mobile, que mostra a foto quase inteira). */
+.hero__hotspot {
+  position: absolute;
+  top: 21%;
+  left: 6%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px 9px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(246,201,69,0.6);
+  background: rgba(15,22,46,0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  cursor: pointer;
+  max-width: min(78vw, 300px);
+  transition: background .2s var(--transicao-suave), border-color .2s var(--transicao-suave), transform .2s var(--transicao-suave);
+}
+.hero__hotspot:hover, .hero__hotspot:focus-visible {
+  background: rgba(15,22,46,0.75);
+  border-color: var(--cor-acento);
+  transform: translateY(-1px);
+}
+.hero__hotspot svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--cor-acento); }
+.hero__hotspot-texto {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  white-space: normal;
+}
+.hero__hotspot-ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 1px solid var(--cor-acento);
+  animation: pulso-whatsapp 2.4s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__hotspot-ping { animation: none; }
+}
+@media (min-width: 900px) {
+  .hero__hotspot { top: 14%; left: 5%; }
+}
+
 /* Hero das páginas secundárias (Institucional) — mesma receita da home,
    mais baixo porque aqui é só a abertura da página, não a primeira
    impressão do site inteiro. Foto real do interior da oficina, sem
@@ -1168,6 +1217,42 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   text-align: center;
   margin: 10px 0 0;
 }
+
+.lista-contatos { display: flex; flex-direction: column; gap: 10px; }
+.lista-contatos__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 12px;
+  color: var(--cor-texto);
+  text-decoration: none;
+  transition: border-color .2s var(--transicao-suave), background .2s var(--transicao-suave), transform .2s var(--transicao-suave);
+}
+.lista-contatos__item:hover {
+  border-color: var(--cor-acento-escuro);
+  background: var(--cor-fundo-alt);
+  transform: translateX(2px);
+  text-decoration: none;
+}
+.lista-contatos__icone {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--cor-fundo-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-primaria);
+}
+.lista-contatos__icone svg { width: 19px; height: 19px; }
+.lista-contatos__icone--whatsapp { color: #25D366; }
+.lista-contatos__texto { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.lista-contatos__texto strong { font-size: 0.94rem; color: var(--cor-texto); }
+.lista-contatos__texto span { font-size: 0.82rem; color: var(--cor-texto-claro); }
+.lista-contatos__seta { color: var(--cor-texto-claro); flex-shrink: 0; }
 
 .campo { margin-bottom: 16px; }
 .campo--dupla { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }

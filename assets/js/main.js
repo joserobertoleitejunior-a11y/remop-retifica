@@ -43,18 +43,18 @@
     });
   }
 
-  function iniciarModalAgendamento() {
-    var overlay = document.querySelector("[data-modal-agendamento]");
-    if (!overlay) return;
+  function configurarModal(overlay, abrirBotoes) {
+    if (!overlay || !abrirBotoes.length) return;
 
-    var abrirBotoes = document.querySelectorAll("[data-abrir-agendamento]");
     var fecharBotoes = overlay.querySelectorAll("[data-fechar-modal]");
 
     function abrir() {
       overlay.classList.add("aberto");
       document.body.style.overflow = "hidden";
-      var primeiroCampo = overlay.querySelector("input, select, textarea");
-      if (primeiroCampo) primeiroCampo.focus();
+      var primeiroFoco = overlay.querySelector(
+        "input, select, textarea, a:not(.modal__fechar), button:not(.modal__fechar)"
+      );
+      if (primeiroFoco) primeiroFoco.focus();
     }
 
     function fechar() {
@@ -74,6 +74,17 @@
     document.addEventListener("keydown", function (evento) {
       if (evento.key === "Escape" && overlay.classList.contains("aberto")) fechar();
     });
+  }
+
+  function iniciarModais() {
+    configurarModal(
+      document.querySelector("[data-modal-agendamento]"),
+      document.querySelectorAll("[data-abrir-agendamento]")
+    );
+    configurarModal(
+      document.querySelector("[data-modal-contatos]"),
+      document.querySelectorAll("[data-abrir-contatos]")
+    );
   }
 
   /**
@@ -109,7 +120,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     preencherLinksWhatsApp();
     iniciarMenuMobile();
-    iniciarModalAgendamento();
+    iniciarModais();
     iniciarAcordeaoFacilidades();
   });
 
