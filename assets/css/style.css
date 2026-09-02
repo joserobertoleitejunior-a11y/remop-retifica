@@ -224,34 +224,47 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 }
 
 /* ---------- Hero ---------- */
+/* Foto real da oficina cheia de carros, tela cheia, com um véu escuro em
+   degradê (não é filtro na imagem — é sobreposição em CSS) só o
+   suficiente pra ler o texto por cima. A foto continua 100% real. */
 .hero {
-  background: linear-gradient(180deg, var(--cor-primaria) 0%, #0c141d 100%);
-  color: #fff;
-  padding: 48px 0 56px;
-}
-.hero__grid {
-  display: grid;
-  gap: 32px;
+  position: relative;
+  min-height: 78vh;
+  display: flex;
   align-items: center;
+  color: #fff;
+  overflow: hidden;
+}
+.hero__foto {
+  position: absolute;
+  inset: 0;
+  background: url('../img/hero-oficina-remop.jpg') center 40% / cover no-repeat;
+  z-index: 0;
+}
+.hero__foto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(22,32,66,0.92) 0%, rgba(22,32,66,0.72) 45%, rgba(22,32,66,0.55) 100%);
 }
 @media (min-width: 900px) {
-  .hero__grid { grid-template-columns: 1.1fr 0.9fr; }
+  .hero__foto::after {
+    background: linear-gradient(90deg, rgba(22,32,66,0.95) 0%, rgba(22,32,66,0.82) 38%, rgba(22,32,66,0.35) 72%, rgba(22,32,66,0.1) 100%);
+  }
+}
+.hero__conteudo {
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
+  padding: 90px 20px 70px;
 }
 .hero__frase-curta {
   font-size: clamp(1.7rem, 5vw, 2.6rem);
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: 16px;
 }
-.hero__texto { color: rgba(255,255,255,0.85); font-size: 1.05rem; }
+.hero__texto { color: rgba(255,255,255,0.88); font-size: 1.05rem; }
 .hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
-.hero__imagem {
-  border-radius: var(--raio);
-  overflow: hidden;
-  box-shadow: var(--sombra-card);
-  aspect-ratio: 4 / 3;
-  background: var(--cor-primaria-clara);
-}
-.hero__imagem img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ---------- Serviços ---------- */
 .grid-servicos {
