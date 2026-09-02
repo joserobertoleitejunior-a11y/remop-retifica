@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://joserobertoleitejunior-a11y.github.io/remop-retifica/sitemap.xml
