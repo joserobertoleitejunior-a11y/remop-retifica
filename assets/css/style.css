@@ -343,14 +343,46 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
     radial-gradient(ellipse 120% 100% at 50% 0%, #24356e 0%, #16204a 45%, #080b1a 100%);
 }
 .vitrine__conteudo h2 { margin-top: 8px; }
+
+/* Linha de 3 carros reais em "vitrine" — o do meio maior/em destaque,
+   os dois das pontas menores e levemente mais baixos, como um
+   showroom improvisado dentro da própria oficina. */
+.vitrine__linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 40px;
+}
 .vitrine__carro {
-  max-width: 380px;
-  margin: 32px auto 0;
+  position: relative;
   border-radius: var(--raio);
   overflow: hidden;
-  box-shadow: 0 40px 80px -24px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08);
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.08);
 }
-.vitrine__carro img { width: 100%; display: block; }
+.vitrine__carro img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.vitrine__carro--principal { width: min(300px, 42vw); aspect-ratio: 422/481; order: 2; }
+.vitrine__carro--elevado { width: min(200px, 30vw); aspect-ratio: 350/300; order: 1; margin-bottom: 20px; opacity: 0.88; }
+.vitrine__carro--lateral { width: min(180px, 28vw); aspect-ratio: 245/175; order: 3; margin-bottom: 26px; opacity: 0.88; }
+.vitrine__legenda {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  background: rgba(8,11,26,0.75);
+  color: var(--cor-acento);
+  font-family: var(--fonte-titulo);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(246,201,69,0.4);
+}
+@media (max-width: 640px) {
+  .vitrine__linha { align-items: center; }
+  .vitrine__carro--elevado, .vitrine__carro--lateral { margin-bottom: 0; }
+}
 
 /* ---------- Serviços ---------- */
 .grid-servicos {
