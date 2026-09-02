@@ -963,35 +963,94 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 
 /* ---------- Footer ---------- */
 .rodape {
+  position: relative;
   background: linear-gradient(165deg, #263a83 0%, var(--cor-primaria) 55%, #141e42 100%);
   color: rgba(255,255,255,0.85);
-  padding: 40px 0 90px;
+  padding: 52px 0 90px;
   overflow-wrap: break-word;
+  border-top: 3px solid var(--cor-acento);
 }
 .rodape__grid {
   display: grid;
-  gap: 28px;
+  gap: 36px;
   grid-template-columns: 1fr;
 }
-@media (min-width: 800px) { .rodape__grid { grid-template-columns: 2fr 1fr 1fr; } }
-.rodape__logo { height: 32px; width: auto; display: block; }
-.rodape h3 { color: #fff; font-size: 1rem; }
-.rodape a { color: rgba(255,255,255,0.85); text-decoration: none; }
-.rodape a:hover { color: #fff; text-decoration: underline; }
-.rodape__redes { display: flex; gap: 14px; margin-top: 10px; }
+@media (min-width: 800px) {
+  .rodape__grid { grid-template-columns: 2fr 1fr 1.1fr; gap: 24px; }
+  .rodape__grid > div + div {
+    padding-left: 32px;
+    border-left: 1px solid rgba(255,255,255,0.14);
+  }
+}
+.rodape__logo {
+  height: 34px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+}
+.rodape p { color: rgba(255,255,255,0.65); font-size: 0.92rem; line-height: 1.6; }
+.rodape h3 {
+  color: #fff;
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(246,201,69,0.35);
+  position: relative;
+}
+.rodape h3::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 30px;
+  height: 2px;
+  background: var(--cor-acento);
+}
+.rodape a { color: rgba(255,255,255,0.85); text-decoration: none; transition: color .2s ease; }
+.rodape a:hover { color: var(--cor-acento); text-decoration: none; }
+.rodape__grid p { margin: 0 0 10px; }
+.rodape__redes { display: flex; gap: 10px; margin-top: 18px; }
 .rodape__redes a {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(246,201,69,0.45);
   color: var(--cor-acento);
-  transition: color .2s ease, transform .2s ease;
+  transition: color .2s ease, border-color .2s ease, transform .2s ease, background .2s ease;
 }
-.rodape__redes a:hover { color: #fff; transform: translateY(-2px); }
+.rodape__redes a svg { width: 17px; height: 17px; }
+.rodape__redes a:hover {
+  color: var(--cor-primaria);
+  background: var(--cor-acento);
+  border-color: var(--cor-acento);
+  transform: translateY(-2px);
+}
+.rodape__contato-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.rodape__contato-item svg {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  margin-top: 3px;
+  color: var(--cor-acento);
+}
+.rodape__contato-item p, .rodape__contato-item a { margin: 0; }
 .rodape__base {
-  margin-top: 28px;
-  padding-top: 18px;
+  margin-top: 40px;
+  padding-top: 20px;
   border-top: 1px solid rgba(255,255,255,0.12);
   font-size: 0.82rem;
   text-align: center;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255,255,255,0.5);
 }
 
 /* ---------- WhatsApp flutuante ---------- */
@@ -1208,7 +1267,7 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   0% { background-position: 100% 50%; }
   100% { background-position: 0 50%; }
 }
-img[loading="lazy"] {
+img[loading="lazy"]:not(.rodape__logo) {
   background: var(--cor-fundo-alt);
 }
 
