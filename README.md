@@ -7,21 +7,30 @@ Projeto da agência **Vibe Coding Process**. Contratos do projeto: veja
 ## Estrutura
 
 ```
-index.html                     10 seções do site (ver BRIEFING-REMOP.md §3)
+index.html                     home: hero, garagem (vitrine) e serviços
+institucional.html             diferenciais, prova social e facilidades
+localizacao.html                endereço/mapa/horário e formas de pagamento
+
 assets/css/style.css           estilos gerais, mobile-first
 assets/css/chat-widget.css     estilos do widget de atendimento
 assets/js/config.js            único ponto de config: WhatsApp, endpoint do bot, Firebase
 assets/js/main.js              menu mobile, links de WhatsApp, modal de agendamento
+assets/js/scroll-reveal.js     animações de entrada ao rolar (GSAP + ScrollTrigger)
 assets/js/firebase-init.js     inicialização do Firebase (SDK client-side)
 assets/js/lead-form.js         grava agendamentos no Firestore + fallback WhatsApp
 assets/js/visitor-gate.js      portão de entrada — grava visitante (nome/whatsapp/carro) no Firestore
 assets/js/chat-widget.js       frontend do bot (com fallback quando a function não responde)
-assets/img/                    imagens (placeholders nomeados — ver lista abaixo)
+assets/img/                    imagens (fotos reais + placeholders — ver lista abaixo)
 netlify/functions/chat-bot.js  backend do bot: chama a API da Anthropic (server-side)
 netlify.toml                   config de deploy pro Netlify (pronta, ainda não ativa)
 .env.example                   variáveis necessárias (nunca commitar .env real)
-robots.txt / sitemap.xml       SEO técnico
+robots.txt / sitemap.xml       SEO técnico (as 3 páginas listadas)
 ```
+
+Header, footer, portão de entrada, chat, modal de agendamento e a lista de
+scripts são idênticos nas 3 páginas HTML — é site estático sem build, então
+qualquer alteração nesses blocos precisa ser replicada manualmente nas 3
+(compartilhamento por duplicação é o trade-off aceito de não ter bundler).
 
 ## Fase atual: GitHub Pages
 
