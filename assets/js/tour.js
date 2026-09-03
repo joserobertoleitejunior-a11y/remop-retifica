@@ -39,7 +39,7 @@
       pagina: "localizacao.html",
       alvo: ".localizacao__mapa",
       pose: "apontando",
-      texto: "Bem fácil de achar: Av. 5 de Novembro, 1301, centro de Itapetininga. Dá uma olhada no mapa!",
+      texto: "Bem fácil de achar: Av. 5 de Novembro, 1301, Vila Nastri, em Itapetininga. Dá uma olhada no mapa!",
     },
     {
       pagina: "localizacao.html",
