@@ -1,22 +1,22 @@
 /**
- * Assistente Remop: o mascote (Seu Remo) conduz uma saudação guiada
- * antes do cliente navegar o site — substitui o antigo portão de
- * entrada (formulário estático) por um fluxo de conversa com botões.
+ * Assistente Remop: uma tela de boas-vindas enxuta (o "splash") com o
+ * mascote apontando pro site — não uma conversa cheia de botões. Dali,
+ * o cliente escolhe entre:
+ *   - "Conhecer o site": fecha o splash e entrega o mascote pro
+ *     tour.js, que passeia pelo próprio site apontando pros pedaços
+ *     reais da página (sem cobrir nada, sem travar o scroll).
+ *   - "Falar sobre meu carro": só aí entra no sub-fluxo de perguntas
+ *     (sintoma comum -> modelo do carro -> nome/WhatsApp -> tela final
+ *     com IA, agendamento ou consulta de valor).
+ *   - "Só quero navegar sozinho": fecha e some da tela.
  *
- * Fluxo: menu principal (problema no carro / história / localização /
- * fotos) -> cada opção direciona pra parte certa do site. "Problema no
- * carro" continua num sub-fluxo: botões de sintoma comum (ou "vou
- * descrever") -> modelo do carro (se ainda não souber) -> nome/WhatsApp
- * (se ainda não souber) -> tela final com IA, agendamento ou consulta
- * de valor. A cada passo a pose do mascote muda.
- *
- * "Só quero navegar sozinho" fecha o assistente e ele some da tela.
- * Ele também se despede sozinho (pausa pro café) depois de um tempo
- * parado sem interação. Nos dois casos só volta se o cliente clicar no
- * ícone de mensagem do cabeçalho/hero (data-chat-abrir), que este
- * arquivo controla no lugar do chat-widget.js (o chat-widget continua
- * sendo quem mostra a conversa de diagnóstico de verdade, chamado por
- * este assistente quando o cliente escolhe "Continuar com a IA").
+ * Em qualquer um dos três casos ele some da tela — só volta se o
+ * cliente clicar no ícone de mensagem do cabeçalho/hero
+ * (data-chat-abrir), que este arquivo controla no lugar do
+ * chat-widget.js (o chat-widget continua sendo quem mostra a conversa
+ * de diagnóstico de verdade, chamado por este assistente quando o
+ * cliente escolhe "Continuar com a IA"). Ele também se despede sozinho
+ * (pausa pro café) depois de um tempo parado sem interação no splash.
  */
 (function () {
   "use strict";
@@ -28,7 +28,6 @@
   var CHAVE_CARRO = "remopVisitanteCarro";
 
   var TEMPO_INATIVIDADE_MS = 40000;
-  var URL_GALERIA = "institucional.html#galeria";
 
   window.RemopIdentidade = {
     obter: function () {
@@ -73,10 +72,6 @@
   };
 
   var ICONES = {
-    chave: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 1 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4z"/></svg>',
-    historia: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-    local: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
-    fotos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8" cy="9" r="1.5"/></svg>',
     voltar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
   };
 
@@ -185,55 +180,27 @@
     }, 2600);
   }
 
-  /* ---------------- Passo 0: menu principal ---------------- */
+  /* ---------------- Passo 0: splash de boas-vindas (enxuto) ---------------- */
 
-  function renderMenu() {
+  function renderSaudacao() {
     limparStatus();
-    trocarPose("bemvindo");
-    definirFala("Oi, eu sou o Seu Remo, da Remop! Me diz o que você precisa que eu te levo direto lá:");
+    trocarPose("apontando");
+    definirFala("Oi, eu sou o Seu Remo, da Remop! Bora conhecer o site?");
 
     elementos.corpo.innerHTML =
-      '<div class="assistente-remop__botoes assistente-remop__botoes--menu">' +
-      '<button type="button" class="assistente-remop__chip assistente-remop__chip--menu" data-menu="problema">' + ICONES.chave + "Tenho um problema no carro</button>" +
-      '<button type="button" class="assistente-remop__chip assistente-remop__chip--menu" data-menu="historia">' + ICONES.historia + "Conhecer a história da Remop</button>" +
-      '<button type="button" class="assistente-remop__chip assistente-remop__chip--menu" data-menu="local">' + ICONES.local + "Como chegar até a oficina</button>" +
-      '<button type="button" class="assistente-remop__chip assistente-remop__chip--menu" data-menu="fotos">' + ICONES.fotos + "Ver fotos da oficina</button>" +
+      '<div class="assistente-remop__acoes">' +
+      '<button class="botao botao--primario botao--bloco assistente-remop__cta" type="button" data-iniciar-tour>Conhecer o site</button>' +
+      '<button class="botao botao--outline botao--bloco" type="button" data-falar-carro>Falar sobre meu carro</button>' +
       "</div>";
 
-    elementos.corpo.querySelector('[data-menu="problema"]').addEventListener("click", renderEscolhaServico);
-    elementos.corpo.querySelector('[data-menu="historia"]').addEventListener("click", function () {
-      irParaPagina("historia");
+    elementos.corpo.querySelector("[data-iniciar-tour]").addEventListener("click", function () {
+      marcarPulou();
+      fecharAssistente();
+      if (window.RemopTour) {
+        window.RemopTour.iniciar();
+      }
     });
-    elementos.corpo.querySelector('[data-menu="local"]').addEventListener("click", function () {
-      irParaPagina("local");
-    });
-    elementos.corpo.querySelector('[data-menu="fotos"]').addEventListener("click", function () {
-      irParaPagina("fotos");
-    });
-  }
-
-  function irParaPagina(destino) {
-    trocarPose("acenando");
-    var textos = {
-      historia: "A Remop existe desde 1989, aqui em Itapetininga — já são gerações de clientes. Vou te levar pra conhecer a história completa!",
-      local: "Bora! Vou te levar pro endereço, mapa e horário de atendimento.",
-      fotos: "Boa escolha! Vou te levar pras fotos reais da nossa oficina.",
-    };
-    var urls = {
-      historia: "institucional.html",
-      local: "localizacao.html",
-      fotos: URL_GALERIA,
-    };
-    definirFala(textos[destino]);
-    elementos.corpo.innerHTML = "";
-    pararTimerInatividade();
-    // Marca como "pulou" antes de navegar — senão o assistente reabre
-    // sozinho assim que a página de destino carrega, tampando bem o
-    // conteúdo que ele acabou de indicar.
-    marcarPulou();
-    setTimeout(function () {
-      location.href = urls[destino];
-    }, 700);
+    elementos.corpo.querySelector("[data-falar-carro]").addEventListener("click", renderEscolhaServico);
   }
 
   /* ---------------- Sub-fluxo: problema no carro ---------------- */
@@ -257,7 +224,7 @@
       "</div>";
     elementos.corpo.innerHTML = html;
 
-    ligarBotaoVoltar(renderMenu);
+    ligarBotaoVoltar(renderSaudacao);
     elementos.corpo.querySelectorAll("[data-servico]").forEach(function (botao) {
       botao.addEventListener("click", function () {
         estado.problema = botao.getAttribute("data-servico");
@@ -484,7 +451,7 @@
     estado = {};
     elementos.raiz.hidden = false;
     travarScroll(true);
-    renderMenu();
+    renderSaudacao();
     reiniciarTimerInatividade();
   }
 
@@ -498,7 +465,7 @@
       '<div class="assistente-remop__caixa">' +
       '<button class="assistente-remop__navegar-sozinho" type="button" data-navegar-sozinho>Só quero navegar sozinho</button>' +
       '<div class="assistente-remop__topo">' +
-      '<img class="assistente-remop__mascote" data-assistente-imagem src="' + POSES.bemvindo + '" alt="Seu Remo, assistente da Remop" width="68" height="124">' +
+      '<img class="assistente-remop__mascote" data-assistente-imagem src="' + POSES.apontando + '" alt="Seu Remo, assistente da Remop" width="68" height="124">' +
       '<div class="assistente-remop__marca">' +
       '<img class="assistente-remop__logo" src="assets/img/logo-remop.png" alt="Remop Retífica de Motores e Auto Peças">' +
       "</div>" +

@@ -1482,6 +1482,102 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .assistente-remop__acoes .botao--outline:hover { border-color: var(--cor-acento); color: var(--cor-acento); }
 
 .assistente-remop__status { color: rgba(255,255,255,0.6); }
+.assistente-remop__cta { font-size: 1.02rem; padding-top: 14px; padding-bottom: 14px; }
+
+/* ---------- Tour guiado pelo site (mascote aponta pro conteúdo real) ---------- */
+.tour-remo {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1400;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.tour-remo[hidden] { display: none; }
+
+.tour-remo__pular {
+  background: rgba(20,30,66,0.85);
+  color: rgba(255,255,255,0.75);
+  border: none;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.tour-remo__pular:hover { color: #fff; }
+
+.tour-remo__corpo {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: rgba(20,30,66,0.85);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  padding: 10px 10px 0 4px;
+  box-shadow: var(--sombra-elevada);
+}
+.tour-remo__mascote {
+  width: 84px;
+  height: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.3));
+  transition: opacity .15s ease;
+}
+.tour-remo__mascote--trocando { opacity: 0; }
+
+.tour-remo__balao {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: var(--sombra-elevada);
+  max-width: 220px;
+}
+.tour-remo__balao p {
+  margin: 0 0 12px;
+  color: var(--cor-texto);
+  font-size: 0.86rem;
+  line-height: 1.42;
+}
+.tour-remo__nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tour-remo__contador {
+  font-size: 0.72rem;
+  color: var(--cor-texto-claro);
+  margin-right: auto;
+  white-space: nowrap;
+}
+.tour-remo__seta {
+  background: var(--cor-fundo-alt);
+  border: 1px solid var(--cor-borda);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--cor-primaria);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.tour-remo__seta:disabled { opacity: 0.35; cursor: default; }
+.tour-remo__nav .botao--sm { padding: 8px 12px; font-size: 0.8rem; white-space: nowrap; }
+
+/* Nunca dois mascotes na tela ao mesmo tempo: enquanto o tour roda,
+   os decorativos ficam escondidos. */
+body.tour-ativo .mascote-decorativo { display: none !important; }
+
+@media (max-width: 480px) {
+  .tour-remo { left: 10px; right: 10px; max-width: none; align-items: stretch; }
+  .tour-remo__pular { align-self: flex-end; }
+  .tour-remo__mascote { width: 60px; }
+  .tour-remo__balao { max-width: none; flex: 1; padding: 12px 14px; }
+}
 
 /* ---------- Mascote decorativo (aparições do Seu Remo pelo site) ---------- */
 .secao--com-mascote { position: relative; }
