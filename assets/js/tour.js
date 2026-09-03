@@ -48,13 +48,18 @@
       texto: "Bora marcar uma avaliação? É rapidinho e sem compromisso.",
       acao: { rotulo: "Agendar avaliação", tipo: "agendamento" },
     },
+    {
+      pagina: "index.html",
+      alvo: "#topo .hero__conteudo",
+      pose: "acenando",
+      texto: "Prontinho! Você já conhece o site inteiro. Fica à vontade pra explorar com calma — se precisar de mim de novo, é só clicar no ícone de chat.",
+    },
   ];
 
   var elementos = {};
   var passoAtual = 0;
   var ativo = false;
   var timerInatividade = null;
-  var timerPosicao = null;
   var timerResize = null;
 
   function paginaAtual() {
@@ -117,12 +122,50 @@
 
   /* ---------------- Posicionamento dinâmico perto do alvo ---------------- */
 
-  function aplicarPosicao(el, semAnimar) {
-    if (!el || !elementos.raiz || !elementos.grupo) return;
-    if (semAnimar) elementos.raiz.style.transition = "none";
-    var scrollY = window.scrollY || window.pageYOffset;
-    var scrollX = window.scrollX || window.pageXOffset;
+  // scrollIntoView({block:"center"}) é assíncrono e a duração do scroll
+  // suave varia com a distância e o aparelho — esperar um tempo fixo
+  // pra "adivinhar" quando ele terminou é frágil (em celular real, uma
+  // rolagem longa pode não ter acabado ainda, e o Remo travava numa
+  // posição no meio do caminho). Em vez de esperar, calculamos aqui,
+  // na hora, onde o alvo VAI PARAR na tela depois de centralizado —
+  // pura matemática a partir da posição atual, sem depender do tempo
+  // de animação.
+  function calcularRetanguloFinal(el) {
     var r = el.getBoundingClientRect();
+    var scrollAtual = window.scrollY || window.pageYOffset;
+    var alturaJanela = window.innerHeight;
+    var alturaDocumento = document.documentElement.scrollHeight;
+
+    var scrollDesejado = scrollAtual + r.top + r.height / 2 - alturaJanela / 2;
+    var scrollMaximo = Math.max(0, alturaDocumento - alturaJanela);
+    var scrollFinal = Math.max(0, Math.min(scrollDesejado, scrollMaximo));
+    var deslocamento = scrollFinal - scrollAtual;
+
+    return {
+      top: r.top - deslocamento,
+      bottom: r.bottom - deslocamento,
+      left: r.left,
+      scrollY: scrollFinal,
+    };
+  }
+
+  // Mesma forma de retângulo, mas sem prever scroll nenhum — usado
+  // quando não estamos rolando a página (reposicionar depois que
+  // fontes/imagens carregam, ou quando a janela é redimensionada).
+  function retanguloAtual(el) {
+    var r = el.getBoundingClientRect();
+    return {
+      top: r.top,
+      bottom: r.bottom,
+      left: r.left,
+      scrollY: window.scrollY || window.pageYOffset,
+    };
+  }
+
+  function aplicarPosicao(retangulo, semAnimar) {
+    if (!retangulo || !elementos.raiz || !elementos.grupo) return;
+    if (semAnimar) elementos.raiz.style.transition = "none";
+    var scrollX = window.scrollX || window.pageXOffset;
     var gw = elementos.grupo.offsetWidth;
     var gh = elementos.grupo.offsetHeight;
     var margemTopo = 96;
@@ -134,8 +177,8 @@
     // dentro da janela), encosta no rodapé da área visível — ali
     // normalmente sobra respiro (botões, fim de texto), nunca o
     // título, que fica lá em cima.
-    var acima = r.top - gh - 10;
-    var abaixo = r.bottom + 10;
+    var acima = retangulo.top - gh - 10;
+    var abaixo = retangulo.bottom + 10;
     var topo;
     if (acima >= margemTopo) {
       topo = acima;
@@ -144,9 +187,9 @@
     } else {
       topo = margemBase;
     }
-    var esquerda = Math.max(12, Math.min(r.left, window.innerWidth - gw - 12));
+    var esquerda = Math.max(12, Math.min(retangulo.left, window.innerWidth - gw - 12));
 
-    elementos.raiz.style.top = topo + scrollY + "px";
+    elementos.raiz.style.top = topo + retangulo.scrollY + "px";
     elementos.raiz.style.left = esquerda + scrollX + "px";
 
     if (semAnimar) {
@@ -158,24 +201,20 @@
     }
   }
 
-  // Depois do primeiro posicionamento de cada página, a fonte e as
-  // imagens ainda podem terminar de carregar e empurrar o layout —
-  // reposiciona de novo (sem show visual, já tá tudo parado) quando
-  // isso terminar, senão o Remo fica "perdido" longe do alvo real.
-  function reposicionarQuandoEstabilizar() {
-    function reaplicar() {
-      if (!ativo) return;
-      var passo = PASSOS[passoAtual];
-      var el = passo && document.querySelector(passo.alvo);
-      aplicarPosicao(el, true);
-    }
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(reaplicar).catch(function () {});
-    }
-    if (document.readyState === "complete") {
-      reaplicar();
+  // A troca de fonte da página (Barlow Condensed/Inter só terminam de
+  // carregar depois do primeiro parse) pode empurrar o layout e mudar
+  // onde o alvo realmente fica — por isso só calculamos a posição
+  // DEPOIS que as fontes estiverem prontas, em vez de calcular e
+  // torcer. Importante: isso roda só uma vez por passo, ANTES do
+  // scroll começar — nunca depois, senão corre o risco de recalcular
+  // com a página ainda no meio da própria rolagem que a gente disparou
+  // e travar o Remo num ponto qualquer do caminho (foi exatamente esse
+  // o bug reportado).
+  function quandoFontesProntas(callback) {
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
+      document.fonts.ready.then(callback, callback);
     } else {
-      window.addEventListener("load", reaplicar, { once: true });
+      callback();
     }
   }
 
@@ -185,7 +224,7 @@
       if (!ativo) return;
       var passo = PASSOS[passoAtual];
       var el = passo && document.querySelector(passo.alvo);
-      aplicarPosicao(el);
+      if (el) aplicarPosicao(retanguloAtual(el));
     }, 200);
   }
 
@@ -195,6 +234,7 @@
 
   function mostrarPasso(indice) {
     passoAtual = Math.max(0, Math.min(indice, PASSOS.length - 1));
+    var indiceDestePasso = passoAtual;
     var passo = PASSOS[passoAtual];
     var semAnimar = primeiraExibicaoNestaPagina;
     primeiraExibicaoNestaPagina = false;
@@ -214,12 +254,19 @@
     }
 
     var el = document.querySelector(passo.alvo);
-    if (el) el.scrollIntoView({ behavior: semAnimar ? "auto" : "smooth", block: "center" });
-
-    clearTimeout(timerPosicao);
-    timerPosicao = setTimeout(function () {
-      aplicarPosicao(el, semAnimar);
-    }, semAnimar ? 60 : 550);
+    if (el) {
+      // Só calcula a posição (e rola até ela) depois que as fontes da
+      // página estiverem prontas — troca de fonte é a principal coisa
+      // que ainda empurra o layout depois do carregamento. O cálculo
+      // em si é matemática pura sobre onde a seção vai parar depois de
+      // centralizada, então não precisa esperar a animação do scroll
+      // terminar — só posiciona e deixa o scroll alcançar.
+      quandoFontesProntas(function () {
+        if (passoAtual !== indiceDestePasso) return; // já avançou pra outro passo
+        aplicarPosicao(calcularRetanguloFinal(el), semAnimar);
+        el.scrollIntoView({ behavior: semAnimar ? "auto" : "smooth", block: "center" });
+      });
+    }
 
     reiniciarTimer();
   }
@@ -316,7 +363,6 @@
     raiz.querySelector("[data-tour-pular]").addEventListener("click", encerrarTour);
     raiz.addEventListener("click", reiniciarTimer);
     window.addEventListener("resize", aoRedimensionar);
-    reposicionarQuandoEstabilizar();
 
     // Só retoma nessa página se ela for realmente a página do passo
     // salvo — nunca "adivinha" outro passo (index.html aparece em dois
