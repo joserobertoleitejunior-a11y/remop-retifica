@@ -201,26 +201,35 @@
     }
   }
 
-  // A troca de fonte da página (Barlow Condensed/Inter só terminam de
-  // carregar depois do primeiro parse) pode empurrar o layout e mudar
-  // onde o alvo realmente fica. Mas NUNCA esperamos isso pra posicionar
-  // — numa conexão lenta isso podia levar mais de um segundo, e nesse
-  // tempo o Remo ficava parado escondido em (0,0) sem aparecer (foi
-  // isso que causou o "some no passo 3"). Por isso posicionamos SEMPRE
-  // na hora, e só corrigimos de leve depois, se as fontes ainda
-  // estiverem carregando quando isso acontece. calcularRetanguloFinal
-  // não depende de a página estar parada (a matemática vale mesmo com
-  // um scroll nosso em andamento), então recalcular de novo aqui é
-  // seguro — diferente de reler a tela "ao vivo", que foi o bug
-  // anterior (lia a página no meio do próprio scroll que a gente
-  // disparou).
-  function corrigirPosicaoQuandoFontesCarregarem(el, indiceDestePasso) {
-    if (!document.fonts || !document.fonts.ready || typeof document.fonts.ready.then !== "function") return;
-    if (document.fonts.status === "loaded") return;
-    document.fonts.ready.then(function () {
+  // Depois que a gente já rolou a página, duas coisas ainda podem
+  // acontecer e bagunçar tudo:
+  //  1) A fonte troca (Barlow Condensed/Inter terminam de carregar) e
+  //     empurra o layout, mudando onde o alvo realmente fica.
+  //  2) As imagens da página terminam de carregar e o GSAP ScrollTrigger
+  //     (scroll-reveal.js) se recalcula (ScrollTrigger.refresh(), que
+  //     também escuta "load" e fontes prontas) — isso pode acontecer
+  //     bem no meio da nossa própria rolagem automática (rolagens
+  //     longas, tipo até a seção de serviços, dão mais tempo pra essa
+  //     brecha) e deixar a página de volta lá no topo, com o Remo
+  //     "certo" na posição mas a tela olhando pro lugar errado.
+  // Por isso NUNCA esperamos essas coisas pra posicionar (numa conexão
+  // lenta isso demora, e o Remo ficava escondido — foi o bug do "some
+  // no passo 3" original). Em vez disso: posicionamos e rolamos na
+  // hora, e reforçamos os dois de novo quando fontes/página terminarem
+  // de carregar, corrigindo qualquer bagunça que tenha acontecido no
+  // meio do caminho.
+  function reforcarPosicaoEScroll(el, indiceDestePasso) {
+    function reaplicar() {
       if (!ativo || passoAtual !== indiceDestePasso) return;
       aplicarPosicao(calcularRetanguloFinal(el), true);
-    });
+      el.scrollIntoView({ behavior: "auto", block: "center" });
+    }
+    if (document.fonts && document.fonts.ready && document.fonts.status !== "loaded") {
+      document.fonts.ready.then(reaplicar);
+    }
+    if (document.readyState !== "complete") {
+      window.addEventListener("load", reaplicar, { once: true });
+    }
   }
 
   function aoRedimensionar() {
@@ -265,7 +274,7 @@
       // Remo lá, na hora — ele nunca fica escondido esperando nada.
       aplicarPosicao(calcularRetanguloFinal(el), semAnimar);
       el.scrollIntoView({ behavior: semAnimar ? "auto" : "smooth", block: "center" });
-      corrigirPosicaoQuandoFontesCarregarem(el, indiceDestePasso);
+      reforcarPosicaoEScroll(el, indiceDestePasso);
     }
 
     reiniciarTimer();
