@@ -62,13 +62,6 @@
     return nome === "" ? "index.html" : nome;
   }
 
-  function indiceParaPagina(pagina) {
-    for (var i = 0; i < PASSOS.length; i++) {
-      if (PASSOS[i].pagina === pagina) return i;
-    }
-    return -1;
-  }
-
   function lerEstado() {
     try {
       var bruto = localStorage.getItem(CHAVE_ESTADO);
@@ -124,8 +117,9 @@
 
   /* ---------------- Posicionamento dinâmico perto do alvo ---------------- */
 
-  function aplicarPosicao(el) {
+  function aplicarPosicao(el, semAnimar) {
     if (!el || !elementos.raiz || !elementos.grupo) return;
+    if (semAnimar) elementos.raiz.style.transition = "none";
     var scrollY = window.scrollY || window.pageYOffset;
     var scrollX = window.scrollX || window.pageXOffset;
     var r = el.getBoundingClientRect();
@@ -154,6 +148,35 @@
 
     elementos.raiz.style.top = topo + scrollY + "px";
     elementos.raiz.style.left = esquerda + scrollX + "px";
+
+    if (semAnimar) {
+      // força o navegador a aplicar a posição antes de devolver a
+      // transição — senão o primeiro passo da página também desliza
+      // de (0,0), efeito estranho de "pular do nada".
+      void elementos.raiz.offsetHeight;
+      elementos.raiz.style.transition = "";
+    }
+  }
+
+  // Depois do primeiro posicionamento de cada página, a fonte e as
+  // imagens ainda podem terminar de carregar e empurrar o layout —
+  // reposiciona de novo (sem show visual, já tá tudo parado) quando
+  // isso terminar, senão o Remo fica "perdido" longe do alvo real.
+  function reposicionarQuandoEstabilizar() {
+    function reaplicar() {
+      if (!ativo) return;
+      var passo = PASSOS[passoAtual];
+      var el = passo && document.querySelector(passo.alvo);
+      aplicarPosicao(el, true);
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(reaplicar).catch(function () {});
+    }
+    if (document.readyState === "complete") {
+      reaplicar();
+    } else {
+      window.addEventListener("load", reaplicar, { once: true });
+    }
   }
 
   function aoRedimensionar() {
@@ -168,9 +191,13 @@
 
   /* ---------------- Passos ---------------- */
 
+  var primeiraExibicaoNestaPagina = true;
+
   function mostrarPasso(indice) {
     passoAtual = Math.max(0, Math.min(indice, PASSOS.length - 1));
     var passo = PASSOS[passoAtual];
+    var semAnimar = primeiraExibicaoNestaPagina;
+    primeiraExibicaoNestaPagina = false;
 
     trocarPose(passo.pose);
     elementos.texto.textContent = passo.texto;
@@ -187,12 +214,12 @@
     }
 
     var el = document.querySelector(passo.alvo);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (el) el.scrollIntoView({ behavior: semAnimar ? "auto" : "smooth", block: "center" });
 
     clearTimeout(timerPosicao);
     timerPosicao = setTimeout(function () {
-      aplicarPosicao(el);
-    }, 550);
+      aplicarPosicao(el, semAnimar);
+    }, semAnimar ? 60 : 550);
 
     reiniciarTimer();
   }
@@ -289,21 +316,20 @@
     raiz.querySelector("[data-tour-pular]").addEventListener("click", encerrarTour);
     raiz.addEventListener("click", reiniciarTimer);
     window.addEventListener("resize", aoRedimensionar);
+    reposicionarQuandoEstabilizar();
 
+    // Só retoma nessa página se ela for realmente a página do passo
+    // salvo — nunca "adivinha" outro passo (index.html aparece em dois
+    // passos diferentes do tour; chutar o mais próximo já causou o
+    // Remo pulando pro passo errado). Se o visitante saiu do roteiro
+    // sozinho, o tour só reaparece quando ele chegar na página certa
+    // de novo (via header, ou clicando Próximo/Anterior).
     var estado = lerEstado();
-    if (estado && estado.ativo) {
-      var idx = PASSOS[estado.passo] && PASSOS[estado.passo].pagina === paginaAtual()
-        ? estado.passo
-        : indiceParaPagina(paginaAtual());
-      if (idx === -1) {
-        limparEstado();
-      } else {
-        ativo = true;
-        document.body.classList.add("tour-ativo");
-        raiz.hidden = false;
-        salvarEstado(idx);
-        mostrarPasso(idx);
-      }
+    if (estado && estado.ativo && PASSOS[estado.passo] && PASSOS[estado.passo].pagina === paginaAtual()) {
+      ativo = true;
+      document.body.classList.add("tour-ativo");
+      raiz.hidden = false;
+      mostrarPasso(estado.passo);
     }
   }
 

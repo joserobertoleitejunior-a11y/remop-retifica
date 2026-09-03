@@ -1554,10 +1554,10 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .tour-remo__balao p {
   margin: 0 0 10px;
   color: var(--cor-texto);
-  font-family: "Permanent Marker", cursive;
-  font-size: 1.08rem;
-  line-height: 1.38;
-  letter-spacing: 0.2px;
+  font-family: "Kalam", cursive;
+  font-weight: 700;
+  font-size: 1.02rem;
+  line-height: 1.4;
 }
 .tour-remo__acao { margin: 0 0 10px; }
 .tour-remo__acao .botao { width: 100%; }
