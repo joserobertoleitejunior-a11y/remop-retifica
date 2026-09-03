@@ -25,7 +25,7 @@ window.REMOP_CONFIG = {
   // banco, não por esconder estes valores. Preencher com o projeto real
   // antes de usar o formulário de agendamento em produção (ver README).
   supabase: {
-    url: "SUBSTITUIR_SUPABASE_URL",
-    anonKey: "SUBSTITUIR_SUPABASE_ANON_KEY",
+    url: "https://ohpabbrmzcmaduimxbsd.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ocGFiYnJtemNtYWR1aW14YnNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0Mzc2OTUsImV4cCI6MjEwNDAxMzY5NX0.ZlByWc3yuker18PFKraeEeQf0ExBugB1BJhG7aj8s58",
   },
 };
