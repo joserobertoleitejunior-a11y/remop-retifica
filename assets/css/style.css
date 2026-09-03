@@ -458,6 +458,11 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   color: var(--cor-acento);
   transform: translateY(-3px) scale(1.15);
 }
+@media (min-width: 900px) {
+  .hero__faixa-trilha { gap: 64px; padding: 6px 0; }
+  .hero__faixa-icone { width: 34px; height: 34px; }
+  .hero__faixa-icone svg { width: 28px; height: 28px; }
+}
 
 /* Hero das páginas secundárias (Institucional) — mesma receita da home,
    mais baixo porque aqui é só a abertura da página, não a primeira
