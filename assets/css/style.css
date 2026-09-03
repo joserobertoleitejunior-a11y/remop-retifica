@@ -902,6 +902,8 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   margin-right: auto;
 }
 
+.galeria-ancora { scroll-margin-top: 84px; }
+
 .grid-galeria-real {
   display: grid;
   grid-template-columns: 1fr;
@@ -1360,12 +1362,12 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 
 .assistente-remop__topo {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-end;
+  gap: 2px;
   margin-bottom: 16px;
 }
 .assistente-remop__mascote {
-  width: 76px;
+  width: 68px;
   height: auto;
   flex-shrink: 0;
   filter: drop-shadow(0 10px 18px rgba(0,0,0,0.4));
@@ -1415,6 +1417,46 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   background: transparent;
   border-style: dashed;
 }
+
+/* Menu principal (nível 1): botões grandes empilhados, um por linha */
+.assistente-remop__botoes--menu {
+  flex-direction: column;
+  gap: 10px;
+}
+.assistente-remop__chip--menu {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+.assistente-remop__chip--menu svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--cor-acento);
+  transition: color .2s var(--transicao-suave);
+}
+.assistente-remop__chip--menu:hover svg,
+.assistente-remop__chip--menu:focus-visible svg { color: var(--cor-primaria); }
+
+.assistente-remop__voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+}
+.assistente-remop__voltar:hover { color: #fff; }
 
 .assistente-remop__caixa form { text-align: left; }
 .assistente-remop__caixa .campo label { color: rgba(255,255,255,0.85); }
@@ -1479,16 +1521,6 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   display: none;
 }
 
-/* Serviços: mais longe, canto superior direito, menor e um pouco mais sutil */
-.mascote-decorativo--servicos {
-  right: 3%;
-  top: 8px;
-  width: 78px;
-  opacity: 0.92;
-  filter: drop-shadow(0 8px 14px rgba(20,32,46,0.25));
-  display: none;
-}
-
 /* Rodapé: a grade de 3 colunas ocupa quase toda a largura do container
    em qualquer resolução de desktop comum — não sobra "corredor" livre
    dentro dela pra encaixar o mascote sem tampar texto. Por isso ele só
@@ -1502,20 +1534,36 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   display: none;
 }
 
+/* Institucional (Diferenciais): o layout de 2 colunas (texto + foto)
+   ocupa quase toda a largura do container em qualquer resolução — não
+   sobra corredor livre pra encaixar o mascote sem tampar texto ou
+   foto. Mesma solução do rodapé: só na margem externa do container,
+   em telas bem largas. Única aparição decorativa nessa página, sem
+   risco de aparecer junto com outra (fica numa página separada da
+   home). */
+.mascote-decorativo--diferenciais {
+  left: 14px;
+  bottom: 16px;
+  width: 110px;
+  filter: drop-shadow(0 12px 20px rgba(0,0,0,0.4));
+  display: none;
+}
+
 @media (min-width: 760px) {
-  .mascote-decorativo--vitrine,
-  .mascote-decorativo--servicos {
+  .mascote-decorativo--vitrine {
     display: block;
   }
 }
 
 @media (min-width: 1100px) {
   .mascote-decorativo--vitrine { width: 150px; left: 3%; }
-  .mascote-decorativo--servicos { width: 92px; right: 6%; }
 }
 
 @media (min-width: 1400px) {
-  .mascote-decorativo--rodape { display: block; }
+  .mascote-decorativo--rodape,
+  .mascote-decorativo--diferenciais {
+    display: block;
+  }
 }
 
 /* ---------- Letras montáveis (efeito de montagem/desmontagem no scroll) ---------- */
@@ -1538,7 +1586,7 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   0% { background-position: 100% 50%; }
   100% { background-position: 0 50%; }
 }
-img[loading="lazy"]:not(.rodape__logo) {
+img[loading="lazy"]:not(.rodape__logo):not(.mascote-decorativo) {
   background: var(--cor-fundo-alt);
 }
 

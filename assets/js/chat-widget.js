@@ -296,6 +296,71 @@
     painelConsultaAberto = null;
   }
 
+  /**
+   * Chips de resposta rápida do painel "Consultar valor" — cada
+   * serviço tem sintomas típicos diferentes, então a pergunta que
+   * aparece já é adequada ao que a pessoa clicou (em vez do mesmo
+   * "tem barulho estranho?" genérico embaixo de qualquer card).
+   */
+  var OPCOES_POR_SERVICO = {
+    "Retífica de Cabeçote": [
+      ["Só quero saber o valor aproximado desse serviço.", "Só quero o valor aproximado"],
+      ["O motor está perdendo força ou consumindo mais óleo que o normal.", "Perdendo força ou consumindo óleo"],
+      ["O carro superaqueceu ou a junta do cabeçote queimou.", "Superaqueceu ou queimou a junta"],
+    ],
+    "Retífica de Bielas": [
+      ["Só quero saber o valor aproximado desse serviço.", "Só quero o valor aproximado"],
+      ["O motor está com uma batida ou barulho seco, tipo de biela.", "Batida/barulho de biela"],
+      ["É preventivo — ainda não notei problema, quero adiantar.", "É preventivo, sem problema notado"],
+    ],
+    "Retífica de Cilindro": [
+      ["Só quero saber o valor aproximado desse serviço.", "Só quero o valor aproximado"],
+      ["Está consumindo muito óleo ou saindo fumaça pelo escapamento.", "Consumo de óleo ou fumaça no escapamento"],
+      ["Sinto que o motor perdeu compressão/força.", "Perda de compressão"],
+    ],
+    "Manutenção e retífica de virabrequim": [
+      ["Só quero saber o valor aproximado desse serviço.", "Só quero o valor aproximado"],
+      ["O motor está com folga, trepidação ou vibração forte.", "Folga ou vibração forte"],
+      ["É preventivo — ainda não notei problema, quero adiantar.", "É preventivo, sem problema notado"],
+    ],
+    "Retoque e recuperação de bloco de motor": [
+      ["Só quero saber o valor aproximado desse serviço.", "Só quero o valor aproximado"],
+      ["O bloco está trincado ou com vazamento de óleo/água.", "Bloco trincado ou vazando"],
+      ["O motor superaqueceu recentemente.", "Motor superaqueceu"],
+    ],
+    "Usinagem para motores automotivos": [
+      ["Só quero saber o valor aproximado desse serviço.", "Só quero o valor aproximado"],
+      ["Preciso usinar uma peça específica do motor.", "Preciso usinar uma peça específica"],
+      ["Ainda não sei exatamente o que preciso, quero orientação.", "Ainda não sei o que preciso"],
+    ],
+    "Troca de correia dentada": [
+      ["Só quero saber o valor aproximado desse serviço.", "Só quero o valor aproximado"],
+      ["A correia já está desgastada, ressecada ou fazendo barulho.", "Correia desgastada ou com barulho"],
+      ["É preventivo — está dentro do prazo/km de troca.", "É preventivo, dentro do prazo"],
+    ],
+  };
+  var OPCOES_PADRAO = [
+    ["Só quero saber o valor aproximado desse serviço.", "Só quero o valor aproximado"],
+    ["Meu carro está com barulho ou vibração diferente do normal.", "Tem barulho/vibração estranha"],
+    ["É preventivo — ainda não notei problema, quero adiantar.", "É preventivo, sem problema notado"],
+  ];
+
+  function preencherOpcoesPorServico(elOpcoes, servico) {
+    if (!elOpcoes) return;
+    var opcoes = OPCOES_POR_SERVICO[servico] || OPCOES_PADRAO;
+    elOpcoes.innerHTML = opcoes
+      .map(function (par) {
+        return (
+          '<button type="button" class="chip-opcao" data-opcao="' +
+          par[0].replace(/"/g, "&quot;") +
+          '">' +
+          par[1] +
+          "</button>"
+        );
+      })
+      .join("");
+  }
+
   function criarPainelConsulta(servico) {
     var modelo = document.querySelector("[data-modelo-painel-consulta]");
     if (!modelo) return null;
@@ -322,6 +387,7 @@
     };
 
     el.titulo.textContent = servico;
+    preencherOpcoesPorServico(el.opcoes, servico);
 
     function adicionarBolhaLocal(texto, tipo) {
       var bolha = document.createElement("div");

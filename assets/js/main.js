@@ -44,7 +44,7 @@
   }
 
   function configurarModal(overlay, abrirBotoes) {
-    if (!overlay || !abrirBotoes.length) return;
+    if (!overlay) return null;
 
     var fecharBotoes = overlay.querySelectorAll("[data-fechar-modal]");
 
@@ -74,13 +74,19 @@
     document.addEventListener("keydown", function (evento) {
       if (evento.key === "Escape" && overlay.classList.contains("aberto")) fechar();
     });
+
+    return { abrir: abrir, fechar: fechar };
   }
 
   function iniciarModais() {
-    configurarModal(
+    var agendamento = configurarModal(
       document.querySelector("[data-modal-agendamento]"),
       document.querySelectorAll("[data-abrir-agendamento]")
     );
+    // Exposto pro assistente.js chamar "Agendar avaliação" a partir do
+    // próprio fluxo do mascote, em qualquer página (o modal existe nas
+    // 3 páginas públicas).
+    if (agendamento) window.RemopAgendamento = agendamento;
   }
 
   /**

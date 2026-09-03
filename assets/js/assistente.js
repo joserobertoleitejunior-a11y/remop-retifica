@@ -3,17 +3,20 @@
  * antes do cliente navegar o site — substitui o antigo portão de
  * entrada (formulário estático) por um fluxo de conversa com botões.
  *
- * Fluxo: saudação + botões de problema (ou "vou descrever") -> pergunta
- * o modelo do carro (se ainda não souber) -> pergunta nome/WhatsApp (se
- * ainda não souber) -> tela final com ação de continuar no chat com IA
- * ou ir direto pro serviço no site. A cada passo a pose do mascote muda.
+ * Fluxo: menu principal (problema no carro / história / localização /
+ * fotos) -> cada opção direciona pra parte certa do site. "Problema no
+ * carro" continua num sub-fluxo: botões de sintoma comum (ou "vou
+ * descrever") -> modelo do carro (se ainda não souber) -> nome/WhatsApp
+ * (se ainda não souber) -> tela final com IA, agendamento ou consulta
+ * de valor. A cada passo a pose do mascote muda.
  *
- * "Só quero navegar sozinho" fecha o assistente e ele some da tela —
- * só volta se o cliente clicar no ícone de mensagem do cabeçalho/hero
- * (data-chat-abrir), que este arquivo passa a controlar no lugar do
- * chat-widget.js (o chat-widget continua sendo quem mostra a conversa
- * de diagnóstico de verdade, chamado por este assistente quando o
- * cliente escolhe "Continuar com a IA").
+ * "Só quero navegar sozinho" fecha o assistente e ele some da tela.
+ * Ele também se despede sozinho (pausa pro café) depois de um tempo
+ * parado sem interação. Nos dois casos só volta se o cliente clicar no
+ * ícone de mensagem do cabeçalho/hero (data-chat-abrir), que este
+ * arquivo controla no lugar do chat-widget.js (o chat-widget continua
+ * sendo quem mostra a conversa de diagnóstico de verdade, chamado por
+ * este assistente quando o cliente escolhe "Continuar com a IA").
  */
 (function () {
   "use strict";
@@ -23,6 +26,9 @@
   var CHAVE_NOME = "remopVisitanteNome";
   var CHAVE_WHATSAPP = "remopVisitanteWhatsapp";
   var CHAVE_CARRO = "remopVisitanteCarro";
+
+  var TEMPO_INATIVIDADE_MS = 40000;
+  var URL_GALERIA = "institucional.html#galeria";
 
   window.RemopIdentidade = {
     obter: function () {
@@ -62,10 +68,21 @@
     duvida: "assets/img/mascote-duvida.png",
     apontando: "assets/img/mascote-apontando.png",
     positivo: "assets/img/mascote-positivo.png",
+    acenando: "assets/img/mascote-acenando.png",
+    relaxado: "assets/img/mascote-relaxado.png",
+  };
+
+  var ICONES = {
+    chave: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 1 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4z"/></svg>',
+    historia: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+    local: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+    fotos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="8" cy="9" r="1.5"/></svg>',
+    voltar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
   };
 
   var elementos = {};
   var estado = {};
+  var timerInatividade = null;
 
   function jaPassouPeloPortao() {
     try {
@@ -75,6 +92,14 @@
       );
     } catch (erro) {
       return true;
+    }
+  }
+
+  function marcarPulou() {
+    try {
+      sessionStorage.setItem(CHAVE_PULOU, "1");
+    } catch (erro) {
+      /* armazenamento bloqueado — segue o baile */
     }
   }
 
@@ -123,14 +148,102 @@
     elementos.status.className = "mensagem-status mensagem-status--erro";
   }
 
-  /* ---------------- Passos do fluxo ---------------- */
+  function botaoVoltar(aoClicar) {
+    return (
+      '<button type="button" class="assistente-remop__voltar" data-voltar>' +
+      ICONES.voltar +
+      " Voltar</button>"
+    );
+  }
 
-  function renderEscolha() {
+  function ligarBotaoVoltar(aoClicar) {
+    var botao = elementos.corpo.querySelector("[data-voltar]");
+    if (botao) botao.addEventListener("click", aoClicar);
+  }
+
+  /* ---------------- Inatividade: ele se despede pro café ---------------- */
+
+  function reiniciarTimerInatividade() {
+    if (timerInatividade) clearTimeout(timerInatividade);
+    if (elementos.raiz && elementos.raiz.hidden) return;
+    timerInatividade = setTimeout(sairParaCafe, TEMPO_INATIVIDADE_MS);
+  }
+
+  function pararTimerInatividade() {
+    if (timerInatividade) clearTimeout(timerInatividade);
+    timerInatividade = null;
+  }
+
+  function sairParaCafe() {
+    trocarPose("relaxado");
+    definirFala("Vou tomar um cafézinho! Qualquer coisa, é só clicar no ícone de chat de novo que eu volto correndo.");
+    elementos.corpo.innerHTML = "";
+    limparStatus();
+    setTimeout(function () {
+      marcarPulou();
+      fecharAssistente();
+    }, 2600);
+  }
+
+  /* ---------------- Passo 0: menu principal ---------------- */
+
+  function renderMenu() {
     limparStatus();
     trocarPose("bemvindo");
-    definirFala("Olá, somos da Remop! Como podemos te ajudar?");
+    definirFala("Oi, eu sou o Seu Remo, da Remop! Me diz o que você precisa que eu te levo direto lá:");
 
-    var html = '<div class="assistente-remop__botoes" data-lista-servicos>';
+    elementos.corpo.innerHTML =
+      '<div class="assistente-remop__botoes assistente-remop__botoes--menu">' +
+      '<button type="button" class="assistente-remop__chip assistente-remop__chip--menu" data-menu="problema">' + ICONES.chave + "Tenho um problema no carro</button>" +
+      '<button type="button" class="assistente-remop__chip assistente-remop__chip--menu" data-menu="historia">' + ICONES.historia + "Conhecer a história da Remop</button>" +
+      '<button type="button" class="assistente-remop__chip assistente-remop__chip--menu" data-menu="local">' + ICONES.local + "Como chegar até a oficina</button>" +
+      '<button type="button" class="assistente-remop__chip assistente-remop__chip--menu" data-menu="fotos">' + ICONES.fotos + "Ver fotos da oficina</button>" +
+      "</div>";
+
+    elementos.corpo.querySelector('[data-menu="problema"]').addEventListener("click", renderEscolhaServico);
+    elementos.corpo.querySelector('[data-menu="historia"]').addEventListener("click", function () {
+      irParaPagina("historia");
+    });
+    elementos.corpo.querySelector('[data-menu="local"]').addEventListener("click", function () {
+      irParaPagina("local");
+    });
+    elementos.corpo.querySelector('[data-menu="fotos"]').addEventListener("click", function () {
+      irParaPagina("fotos");
+    });
+  }
+
+  function irParaPagina(destino) {
+    trocarPose("acenando");
+    var textos = {
+      historia: "A Remop existe desde 1989, aqui em Itapetininga — já são gerações de clientes. Vou te levar pra conhecer a história completa!",
+      local: "Bora! Vou te levar pro endereço, mapa e horário de atendimento.",
+      fotos: "Boa escolha! Vou te levar pras fotos reais da nossa oficina.",
+    };
+    var urls = {
+      historia: "institucional.html",
+      local: "localizacao.html",
+      fotos: URL_GALERIA,
+    };
+    definirFala(textos[destino]);
+    elementos.corpo.innerHTML = "";
+    pararTimerInatividade();
+    // Marca como "pulou" antes de navegar — senão o assistente reabre
+    // sozinho assim que a página de destino carrega, tampando bem o
+    // conteúdo que ele acabou de indicar.
+    marcarPulou();
+    setTimeout(function () {
+      location.href = urls[destino];
+    }, 700);
+  }
+
+  /* ---------------- Sub-fluxo: problema no carro ---------------- */
+
+  function renderEscolhaServico() {
+    limparStatus();
+    trocarPose("bemvindo");
+    definirFala("Beleza! Qual dessas opções parece mais com o que está rolando?");
+
+    var html = botaoVoltar() + '<div class="assistente-remop__botoes" data-lista-servicos>';
     SERVICOS.forEach(function (servico) {
       html +=
         '<button type="button" class="assistente-remop__chip" data-servico="' +
@@ -140,10 +253,11 @@
         "</button>";
     });
     html +=
-      '<button type="button" class="assistente-remop__chip assistente-remop__chip--outro" data-outro-problema>Outro problema, vou descrever</button>' +
+      '<button type="button" class="assistente-remop__chip assistente-remop__chip--outro" data-outro-problema>Não sei explicar, é outra coisa</button>' +
       "</div>";
     elementos.corpo.innerHTML = html;
 
+    ligarBotaoVoltar(renderMenu);
     elementos.corpo.querySelectorAll("[data-servico]").forEach(function (botao) {
       botao.addEventListener("click", function () {
         estado.problema = botao.getAttribute("data-servico");
@@ -158,14 +272,16 @@
   function renderDescricao() {
     limparStatus();
     trocarPose("duvida");
-    definirFala("Pode contar com suas palavras — o que está acontecendo com o carro?");
+    definirFala("Sem problema — me conta com suas palavras o que o carro anda fazendo:");
 
     elementos.corpo.innerHTML =
+      botaoVoltar() +
       '<form class="campo" data-form-descricao>' +
       '<textarea data-campo-descricao rows="3" placeholder="Ex: o carro está fazendo um barulho estranho ao acelerar..." required></textarea>' +
       '<button class="botao botao--primario botao--bloco" type="submit" style="margin-top:10px;">Enviar</button>' +
       "</form>";
 
+    ligarBotaoVoltar(renderEscolhaServico);
     var form = elementos.corpo.querySelector("[data-form-descricao]");
     form.addEventListener("submit", function (evento) {
       evento.preventDefault();
@@ -193,7 +309,7 @@
   function renderModelo() {
     limparStatus();
     trocarPose("duvida");
-    definirFala("Legal! Qual o modelo do carro (e o ano, se souber)?");
+    definirFala("Show! E qual carro é esse — modelo e ano, se você souber?");
 
     elementos.corpo.innerHTML =
       '<form data-form-modelo>' +
@@ -230,7 +346,7 @@
   function renderIdentidade() {
     limparStatus();
     trocarPose("duvida");
-    definirFala("Só mais duas coisinhas, pra eu te chamar certinho e a equipe poder entrar em contato:");
+    definirFala("Só mais uma coisinha: seu nome e um WhatsApp, pra equipe poder te chamar.");
 
     elementos.corpo.innerHTML =
       '<form data-form-identidade>' +
@@ -310,13 +426,14 @@
     var nomeCliente = identidade.nome ? identidade.nome.split(" ")[0] : "";
     definirFala(
       (nomeCliente ? "Show, " + nomeCliente + "! " : "Show! ") +
-      "Já anotei tudo por aqui. Quer continuar agora com nossa IA de diagnóstico, ou prefere dar uma olhada no site com calma?"
+      "Já anotei tudo por aqui. Como prefere continuar?"
     );
 
     var html = '<div class="assistente-remop__acoes">';
-    html += '<button class="botao botao--primario botao--bloco" type="button" data-acao-chat>Continuar com a IA</button>';
+    html += '<button class="botao botao--primario botao--bloco" type="button" data-acao-chat>Continuar com a IA de diagnóstico</button>';
+    html += '<button class="botao botao--outline botao--bloco" type="button" data-acao-agendar>Agendar avaliação</button>';
     if (estado.problema) {
-      html += '<button class="botao botao--outline botao--bloco" type="button" data-acao-servico>Ver esse serviço no site</button>';
+      html += '<button class="botao botao--outline botao--bloco" type="button" data-acao-servico>Consultar valor desse serviço</button>';
     }
     html += '<button class="botao botao--outline botao--bloco" type="button" data-acao-fechar>Só quero navegar, obrigado</button>';
     html += "</div>";
@@ -330,6 +447,14 @@
       fecharAssistente();
       if (window.RemopChatWidget) window.RemopChatWidget.abrirPainel({ mensagemInicial: mensagem });
     });
+
+    var botaoAgendar = elementos.corpo.querySelector("[data-acao-agendar]");
+    if (botaoAgendar) {
+      botaoAgendar.addEventListener("click", function () {
+        fecharAssistente();
+        if (window.RemopAgendamento) window.RemopAgendamento.abrir();
+      });
+    }
 
     var botaoServico = elementos.corpo.querySelector("[data-acao-servico]");
     if (botaoServico) {
@@ -347,14 +472,11 @@
   function fecharAssistente() {
     if (elementos.raiz) elementos.raiz.hidden = true;
     travarScroll(false);
+    pararTimerInatividade();
   }
 
   function navegarSozinho() {
-    try {
-      sessionStorage.setItem(CHAVE_PULOU, "1");
-    } catch (erro) {
-      /* armazenamento bloqueado — só fecha mesmo assim */
-    }
+    marcarPulou();
     fecharAssistente();
   }
 
@@ -362,7 +484,8 @@
     estado = {};
     elementos.raiz.hidden = false;
     travarScroll(true);
-    renderEscolha();
+    renderMenu();
+    reiniciarTimerInatividade();
   }
 
   function montar() {
@@ -375,7 +498,7 @@
       '<div class="assistente-remop__caixa">' +
       '<button class="assistente-remop__navegar-sozinho" type="button" data-navegar-sozinho>Só quero navegar sozinho</button>' +
       '<div class="assistente-remop__topo">' +
-      '<img class="assistente-remop__mascote" data-assistente-imagem src="' + POSES.bemvindo + '" alt="Seu Remo, assistente da Remop" width="76" height="139">' +
+      '<img class="assistente-remop__mascote" data-assistente-imagem src="' + POSES.bemvindo + '" alt="Seu Remo, assistente da Remop" width="68" height="124">' +
       '<div class="assistente-remop__marca">' +
       '<img class="assistente-remop__logo" src="assets/img/logo-remop.png" alt="Remop Retífica de Motores e Auto Peças">' +
       "</div>" +
@@ -396,6 +519,8 @@
     };
 
     raiz.querySelector("[data-navegar-sozinho]").addEventListener("click", navegarSozinho);
+    raiz.addEventListener("click", reiniciarTimerInatividade);
+    raiz.addEventListener("input", reiniciarTimerInatividade);
 
     document.querySelectorAll("[data-chat-abrir], [data-mascote-decorativo]").forEach(function (botao) {
       botao.addEventListener("click", function (evento) {

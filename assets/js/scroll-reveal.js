@@ -158,8 +158,8 @@
       },
     };
     revelarAoRolar(".mascote-decorativo--vitrine", Object.assign({ x: -40, y: 20, duration: 0.9, scale: 0.8 }, aoRevelarMascote));
-    revelarAoRolar(".mascote-decorativo--servicos", Object.assign({ x: 40, y: -16, duration: 0.8, scale: 0.7 }, aoRevelarMascote));
     revelarAoRolar(".mascote-decorativo--rodape", Object.assign({ x: -30, y: 24, duration: 0.9, scale: 0.85 }, aoRevelarMascote));
+    revelarAoRolar(".mascote-decorativo--diferenciais", Object.assign({ x: -30, y: 20, duration: 0.9, scale: 0.8 }, aoRevelarMascote));
 
     // Fotos de destaque
     revelarAoRolar(".diferenciais__foto", { x: 24, y: 0, duration: 0.8 });
