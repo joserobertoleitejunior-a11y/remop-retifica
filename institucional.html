@@ -24,47 +24,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&family=Rajdhani:wght@600;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20260903a">
-<link rel="stylesheet" href="assets/css/chat-widget.css?v=20260903a">
+<link rel="stylesheet" href="assets/css/style.css?v=20260903c">
+<link rel="stylesheet" href="assets/css/chat-widget.css?v=20260903c">
 </head>
 <body>
 <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
-
-<!-- ===================== PORTÃO DE ENTRADA (captura de lead) ===================== -->
-<div class="portao-visitante" data-portao-visitante hidden>
-  <div class="portao-visitante__caixa">
-    <img class="portao-visitante__mascote" src="assets/img/mascote-remop.png" alt="Seu Remo, assistente da Remop" width="92" height="169">
-    <img class="portao-visitante__logo" src="assets/img/logo-remop.png" alt="Remop Retífica de Motores e Auto Peças" width="260" height="49">
-    <h2>Antes de entrar</h2>
-    <p>Oi, eu sou o Seu Remo! Conta pra gente quem é você e qual carro está em jogo — assim, se precisar de um orçamento, já sabemos por onde começar.</p>
-
-    <form data-form-portao novalidate>
-      <div class="campo">
-        <label for="portao-nome">Seu nome</label>
-        <input id="portao-nome" name="nome" type="text" required autocomplete="name" placeholder="Seu nome completo">
-      </div>
-      <div class="campo">
-        <label for="portao-whatsapp">WhatsApp</label>
-        <input id="portao-whatsapp" name="whatsapp" type="tel" required autocomplete="tel" placeholder="(15) 90000-0000">
-      </div>
-      <div class="campo campo--dupla">
-        <div>
-          <label for="portao-modelo">Modelo do carro</label>
-          <input id="portao-modelo" name="modelo" type="text" placeholder="Ex: Onix, Corsa, S10...">
-        </div>
-        <div>
-          <label for="portao-ano">Ano</label>
-          <input id="portao-ano" name="ano" type="text" inputmode="numeric" placeholder="2018" maxlength="4">
-        </div>
-      </div>
-      <button class="botao botao--primario botao--bloco" type="submit">Entrar no site</button>
-      <p class="mensagem-status" data-status-portao></p>
-    </form>
-
-    <p class="mensagem-status portao-visitante__aviso-opcional">É rapidinho e totalmente opcional — usamos só pra te atender melhor.</p>
-    <button class="portao-visitante__pular" type="button" data-pular-portao>Só quero ver o site, entrar sem preencher</button>
-  </div>
-</div>
 
 <!-- ===================== HEADER ===================== -->
 <header class="cabecalho">
@@ -434,16 +398,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
-<script src="assets/js/config.js?v=20260903a"></script>
-<script src="assets/js/supabase-init.js?v=20260903a"></script>
-<script src="assets/js/galeria.js?v=20260903a"></script>
-<script src="assets/js/analytics.js?v=20260903a"></script>
-<script src="assets/js/visitor-gate.js?v=20260903a"></script>
-<script src="assets/js/lead-form.js?v=20260903a"></script>
-<script src="assets/js/main.js?v=20260903a"></script>
-<script src="assets/js/chat-widget.js?v=20260903a"></script>
-<script src="assets/js/scroll-reveal.js?v=20260903a"></script>
-<script src="assets/js/mascote.js?v=20260903a"></script>
+<script src="assets/js/config.js?v=20260903c"></script>
+<script src="assets/js/supabase-init.js?v=20260903c"></script>
+<script src="assets/js/galeria.js?v=20260903c"></script>
+<script src="assets/js/analytics.js?v=20260903c"></script>
+<script src="assets/js/lead-form.js?v=20260903c"></script>
+<script src="assets/js/main.js?v=20260903c"></script>
+<script src="assets/js/chat-widget.js?v=20260903c"></script>
+<script src="assets/js/assistente.js?v=20260903c"></script>
+<script src="assets/js/scroll-reveal.js?v=20260903c"></script>
 <script>document.getElementById("ano-atual").textContent = new Date().getFullYear();</script>
 </body>
 </html>

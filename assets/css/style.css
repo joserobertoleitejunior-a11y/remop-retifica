@@ -688,6 +688,10 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
   transform-origin: left;
   transition: transform .4s var(--transicao-suave);
 }
+.card-servico--destaque {
+  border-color: var(--cor-acento);
+  box-shadow: 0 0 0 3px rgba(246,201,69,0.5), var(--sombra-elevada);
+}
 .card-servico:hover {
   transform: translateY(-8px);
   box-shadow: var(--sombra-elevada);
@@ -1312,8 +1316,8 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
 .mensagem-status--sucesso { color: var(--cor-sucesso); }
 .mensagem-status--erro { color: #c0392b; }
 
-/* ---------- Portão de entrada (captura de lead antes do site) ---------- */
-.portao-visitante {
+/* ---------- Assistente Remop (mascote-guia com fluxo conversacional) ---------- */
+.assistente-remop {
   position: fixed;
   inset: 0;
   z-index: 2000;
@@ -1325,144 +1329,193 @@ p { margin: 0 0 12px; color: var(--cor-texto-claro); }
     radial-gradient(ellipse 70% 60% at 50% 20%, rgba(246,201,69,0.10) 0%, rgba(246,201,69,0) 70%),
     linear-gradient(180deg, #16204a 0%, #0a0e22 100%);
 }
-.portao-visitante[hidden] { display: none; }
-.portao-visitante__caixa {
+.assistente-remop[hidden] { display: none; }
+.assistente-remop__caixa {
+  position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
+  max-height: 92vh;
+  overflow-y: auto;
   background: rgba(20, 30, 66, 0.6);
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 16px;
-  padding: 32px 28px;
-  text-align: center;
+  padding: 26px 24px;
   color: #fff;
   box-shadow: 0 40px 90px -30px rgba(0,0,0,0.8);
 }
-.portao-visitante__logo { height: 42px; width: auto; margin: 0 auto 18px; }
-.portao-visitante__caixa h2 { color: #fff; font-size: 1.5rem; margin-bottom: 10px; }
-.portao-visitante__caixa p { color: rgba(255,255,255,0.72); font-size: 0.92rem; margin-bottom: 22px; }
-.portao-visitante__caixa form { text-align: left; }
-.portao-visitante__caixa .campo label { color: rgba(255,255,255,0.85); }
-.portao-visitante__caixa .campo input {
+.assistente-remop__navegar-sozinho {
+  display: block;
+  margin: 0 0 16px auto;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: right;
+}
+.assistente-remop__navegar-sozinho:hover { color: #fff; }
+
+.assistente-remop__topo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.assistente-remop__mascote {
+  width: 76px;
+  height: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,0.4));
+  transition: opacity .18s var(--transicao-suave);
+}
+.assistente-remop__mascote--trocando { opacity: 0; }
+.assistente-remop__marca { min-width: 0; }
+.assistente-remop__logo { height: 30px; width: auto; display: block; margin-bottom: 4px; }
+
+.assistente-remop__fala {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.assistente-remop__fala p {
+  margin: 0;
+  color: #fff;
+  font-size: 1.02rem;
+  line-height: 1.4;
+}
+
+.assistente-remop__botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.assistente-remop__chip {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: background .2s var(--transicao-suave), border-color .2s var(--transicao-suave), transform .2s var(--transicao-suave);
+}
+.assistente-remop__chip:hover, .assistente-remop__chip:focus-visible {
+  background: var(--cor-acento);
+  border-color: var(--cor-acento);
+  color: var(--cor-primaria);
+  transform: translateY(-2px);
+}
+.assistente-remop__chip--outro {
+  background: transparent;
+  border-style: dashed;
+}
+
+.assistente-remop__caixa form { text-align: left; }
+.assistente-remop__caixa .campo label { color: rgba(255,255,255,0.85); }
+.assistente-remop__caixa .campo input,
+.assistente-remop__caixa .campo textarea {
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.18);
   color: #fff;
 }
-.portao-visitante__caixa .campo input::placeholder { color: rgba(255,255,255,0.35); }
-.portao-visitante__pular {
-  display: block;
-  margin: 16px auto 0;
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.55);
-  font-size: 0.8rem;
-  text-decoration: underline;
-  cursor: pointer;
-}
-.portao-visitante__pular:hover { color: #fff; }
+.assistente-remop__caixa .campo input::placeholder,
+.assistente-remop__caixa .campo textarea::placeholder { color: rgba(255,255,255,0.35); }
 
-.portao-visitante__mascote {
-  width: 92px;
-  height: auto;
-  margin: 0 auto 6px;
-  display: block;
-  filter: drop-shadow(0 10px 18px rgba(0,0,0,0.4));
-}
-.portao-visitante__aviso-opcional {
-  font-size: 0.78rem !important;
-  color: rgba(255,255,255,0.5) !important;
-  margin-top: -14px !important;
-  margin-bottom: 22px !important;
-}
-
-/* ---------- Mascote-guia (assistente flutuante nas páginas públicas) ---------- */
-.mascote-guia {
-  position: fixed;
-  right: 16px;
-  bottom: 88px;
-  z-index: 1500;
+.assistente-remop__acoes {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   gap: 10px;
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .5s var(--transicao-suave), transform .5s var(--transicao-suave);
+  margin-top: 4px;
 }
-.mascote-guia--entrou { opacity: 1; transform: translateY(0); }
+.assistente-remop__acoes .botao--outline {
+  border-color: rgba(255,255,255,0.3);
+  color: #fff;
+}
+.assistente-remop__acoes .botao--outline:hover { border-color: var(--cor-acento); color: var(--cor-acento); }
 
-.mascote-guia__botao {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  line-height: 0;
-  animation: mascote-flutuar 3.4s ease-in-out infinite;
-}
-.mascote-guia__botao img {
-  display: block;
-  width: 74px;
+.assistente-remop__status { color: rgba(255,255,255,0.6); }
+
+/* ---------- Mascote decorativo (aparições do Seu Remo pelo site) ---------- */
+.secao--com-mascote { position: relative; }
+
+.mascote-decorativo {
+  position: absolute;
   height: auto;
-  filter: drop-shadow(0 8px 16px rgba(20, 32, 46, 0.35));
-  transition: transform .25s var(--transicao-suave);
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  z-index: 5;
+  animation: mascote-flutuar 3.8s ease-in-out infinite;
+  animation-play-state: paused;
+  transition: transform .3s var(--transicao-suave), filter .3s var(--transicao-suave);
 }
-.mascote-guia__botao:hover img,
-.mascote-guia__botao:focus-visible img { transform: scale(1.08) rotate(-2deg); }
+/* Flutuação só começa depois que a entrada (GSAP) termina — os dois
+   mexendo no transform ao mesmo tempo brigavam e deixavam a entrada
+   trepidante. */
+.mascote-decorativo--revelado { animation-play-state: running; }
+.mascote-decorativo:hover,
+.mascote-decorativo:focus-visible {
+  transform: scale(1.08) rotate(-2deg);
+}
 
 @keyframes mascote-flutuar {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-10px); }
 }
 
-.mascote-guia__balao {
-  max-width: 260px;
-  background: #fff;
-  color: var(--cor-texto);
-  border-radius: 14px;
-  padding: 14px 16px;
-  box-shadow: var(--sombra-elevada);
-  position: relative;
-  font-size: 0.86rem;
-  line-height: 1.4;
+/* Vitrine (Garagem): perto, canto inferior esquerdo, sombra forte */
+.mascote-decorativo--vitrine {
+  left: 4%;
+  bottom: 6%;
+  width: 110px;
+  filter: drop-shadow(0 14px 22px rgba(0,0,0,0.5));
+  display: none;
 }
-.mascote-guia__balao[hidden] { display: none; }
-.mascote-guia__balao strong {
-  display: block;
-  font-family: var(--fonte-titulo);
-  font-size: 1.05rem;
-  color: var(--cor-primaria);
-  margin-bottom: 4px;
-}
-.mascote-guia__balao p { margin: 0; color: var(--cor-texto-claro); }
-.mascote-guia__balao::after {
-  content: "";
-  position: absolute;
-  right: 26px;
-  bottom: -8px;
-  width: 16px;
-  height: 16px;
-  background: #fff;
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  transform: rotate(-45deg);
-}
-.mascote-guia__fechar {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  line-height: 1;
-  color: var(--cor-texto-claro);
-  cursor: pointer;
-  padding: 4px;
-}
-.mascote-guia__fechar:hover { color: var(--cor-texto); }
 
-@media (min-width: 600px) {
-  .mascote-guia { right: 26px; bottom: 96px; }
-  .mascote-guia__botao img { width: 92px; }
+/* Serviços: mais longe, canto superior direito, menor e um pouco mais sutil */
+.mascote-decorativo--servicos {
+  right: 3%;
+  top: 8px;
+  width: 78px;
+  opacity: 0.92;
+  filter: drop-shadow(0 8px 14px rgba(20,32,46,0.25));
+  display: none;
+}
+
+/* Rodapé: a grade de 3 colunas ocupa quase toda a largura do container
+   em qualquer resolução de desktop comum — não sobra "corredor" livre
+   dentro dela pra encaixar o mascote sem tampar texto. Por isso ele só
+   aparece na margem externa do container, em telas bem largas (a
+   margem só fica confortável acima de ~1400px). */
+.mascote-decorativo--rodape {
+  left: 14px;
+  bottom: 40px;
+  width: 90px;
+  filter: drop-shadow(0 12px 20px rgba(0,0,0,0.45));
+  display: none;
+}
+
+@media (min-width: 760px) {
+  .mascote-decorativo--vitrine,
+  .mascote-decorativo--servicos {
+    display: block;
+  }
+}
+
+@media (min-width: 1100px) {
+  .mascote-decorativo--vitrine { width: 150px; left: 3%; }
+  .mascote-decorativo--servicos { width: 92px; right: 6%; }
+}
+
+@media (min-width: 1400px) {
+  .mascote-decorativo--rodape { display: block; }
 }
 
 /* ---------- Letras montáveis (efeito de montagem/desmontagem no scroll) ---------- */
@@ -1493,5 +1546,5 @@ img[loading="lazy"]:not(.rodape__logo) {
   html { scroll-behavior: auto; }
   .skeleton { animation: none; }
   .botao { transition: none; }
-  .mascote-guia__botao { animation: none; }
+  .mascote-decorativo { animation: none; }
 }

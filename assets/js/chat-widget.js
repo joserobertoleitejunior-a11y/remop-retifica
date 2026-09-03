@@ -541,9 +541,6 @@
       painelIniciado: false,
     };
 
-    document.querySelectorAll("[data-chat-abrir]").forEach(function (botao) {
-      botao.addEventListener("click", function () { abrirPainel(); });
-    });
     document.querySelectorAll("[data-consultar-servico]").forEach(function (botao) {
       botao.addEventListener("click", function () {
         abrirPainelConsulta(botao, botao.getAttribute("data-consultar-servico"));
@@ -567,4 +564,11 @@
   }
 
   document.addEventListener("DOMContentLoaded", iniciar);
+
+  // Exposto pro assistente.js: depois que o mascote termina a saudação
+  // e o cliente escolhe "continuar com a IA", é esta função que abre o
+  // painel de conversa de verdade (o mascote não repete essa lógica).
+  window.RemopChatWidget = {
+    abrirPainel: function (opcoes) { abrirPainel(opcoes); },
+  };
 })();

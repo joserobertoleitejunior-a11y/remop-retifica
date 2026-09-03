@@ -149,6 +149,18 @@
     revelarGrupoAoRolar(".grid-galeria-real", ".foto-galeria-real");
     revelarGrupoAoRolar(".selos-plataformas", ".selo-plataforma");
 
+    // Mascote decorativo (Seu Remo) espalhado pelo site — cada aparição
+    // entra de um lado diferente, reforçando a sensação de "ele tá por
+    // aqui" em vez de um elemento estático repetido.
+    var aoRevelarMascote = {
+      onComplete: function () {
+        this.targets()[0].classList.add("mascote-decorativo--revelado");
+      },
+    };
+    revelarAoRolar(".mascote-decorativo--vitrine", Object.assign({ x: -40, y: 20, duration: 0.9, scale: 0.8 }, aoRevelarMascote));
+    revelarAoRolar(".mascote-decorativo--servicos", Object.assign({ x: 40, y: -16, duration: 0.8, scale: 0.7 }, aoRevelarMascote));
+    revelarAoRolar(".mascote-decorativo--rodape", Object.assign({ x: -30, y: 24, duration: 0.9, scale: 0.85 }, aoRevelarMascote));
+
     // Fotos de destaque
     revelarAoRolar(".diferenciais__foto", { x: 24, y: 0, duration: 0.8 });
     revelarAoRolar(".vitrine__carro", { scale: 0.92, y: 0, duration: 0.8 });
