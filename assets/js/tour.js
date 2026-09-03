@@ -203,19 +203,24 @@
 
   // A troca de fonte da página (Barlow Condensed/Inter só terminam de
   // carregar depois do primeiro parse) pode empurrar o layout e mudar
-  // onde o alvo realmente fica — por isso só calculamos a posição
-  // DEPOIS que as fontes estiverem prontas, em vez de calcular e
-  // torcer. Importante: isso roda só uma vez por passo, ANTES do
-  // scroll começar — nunca depois, senão corre o risco de recalcular
-  // com a página ainda no meio da própria rolagem que a gente disparou
-  // e travar o Remo num ponto qualquer do caminho (foi exatamente esse
-  // o bug reportado).
-  function quandoFontesProntas(callback) {
-    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
-      document.fonts.ready.then(callback, callback);
-    } else {
-      callback();
-    }
+  // onde o alvo realmente fica. Mas NUNCA esperamos isso pra posicionar
+  // — numa conexão lenta isso podia levar mais de um segundo, e nesse
+  // tempo o Remo ficava parado escondido em (0,0) sem aparecer (foi
+  // isso que causou o "some no passo 3"). Por isso posicionamos SEMPRE
+  // na hora, e só corrigimos de leve depois, se as fontes ainda
+  // estiverem carregando quando isso acontece. calcularRetanguloFinal
+  // não depende de a página estar parada (a matemática vale mesmo com
+  // um scroll nosso em andamento), então recalcular de novo aqui é
+  // seguro — diferente de reler a tela "ao vivo", que foi o bug
+  // anterior (lia a página no meio do próprio scroll que a gente
+  // disparou).
+  function corrigirPosicaoQuandoFontesCarregarem(el, indiceDestePasso) {
+    if (!document.fonts || !document.fonts.ready || typeof document.fonts.ready.then !== "function") return;
+    if (document.fonts.status === "loaded") return;
+    document.fonts.ready.then(function () {
+      if (!ativo || passoAtual !== indiceDestePasso) return;
+      aplicarPosicao(calcularRetanguloFinal(el), true);
+    });
   }
 
   function aoRedimensionar() {
@@ -255,17 +260,12 @@
 
     var el = document.querySelector(passo.alvo);
     if (el) {
-      // Só calcula a posição (e rola até ela) depois que as fontes da
-      // página estiverem prontas — troca de fonte é a principal coisa
-      // que ainda empurra o layout depois do carregamento. O cálculo
-      // em si é matemática pura sobre onde a seção vai parar depois de
-      // centralizada, então não precisa esperar a animação do scroll
-      // terminar — só posiciona e deixa o scroll alcançar.
-      quandoFontesProntas(function () {
-        if (passoAtual !== indiceDestePasso) return; // já avançou pra outro passo
-        aplicarPosicao(calcularRetanguloFinal(el), semAnimar);
-        el.scrollIntoView({ behavior: semAnimar ? "auto" : "smooth", block: "center" });
-      });
+      // Calcula ANTES de rolar onde a seção vai parar (matemática pura,
+      // não depende de esperar a animação terminar) e já posiciona o
+      // Remo lá, na hora — ele nunca fica escondido esperando nada.
+      aplicarPosicao(calcularRetanguloFinal(el), semAnimar);
+      el.scrollIntoView({ behavior: semAnimar ? "auto" : "smooth", block: "center" });
+      corrigirPosicaoQuandoFontesCarregarem(el, indiceDestePasso);
     }
 
     reiniciarTimer();
