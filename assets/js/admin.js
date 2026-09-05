@@ -1,8 +1,9 @@
 /**
  * Painel administrativo — login por PIN (Supabase Auth por baixo dos
- * panos) + dashboard (Chart.js) + Clientes + Galeria + Assistente IA,
- * com dados reais das tabelas que assets/js/analytics.js,
- * visitor-gate.js, lead-form.js e o próprio painel gravam no Supabase.
+ * panos) + dashboard (Chart.js, com KPIs 3D/cinematográficos e dados
+ * reais) + Clientes + Galeria + Assistente IA, com dados reais das
+ * tabelas que assets/js/analytics.js, visitor-gate.js, lead-form.js e o
+ * próprio painel gravam no Supabase.
  *
  * Login por PIN: o Supabase Auth continua sendo o mecanismo real por
  * trás (é o que autoriza a leitura protegida pelas políticas de RLS),
@@ -21,34 +22,90 @@
   var PAINEL_EMAIL_FIXO = "painel@remop-retifica.internal";
   var SUFIXO_SENHA_PIN = "-RemopPainel2026!";
   var BUCKET_GALERIA = "galeria";
+  var PAGINACAO_TAMANHO = 50;
+
+  var REDUZ_MOVIMENTO = !!(
+    window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 
   var CORES = {
     visitantes: "#1E2E63",
     agendamentos: "#1f8a4c",
     cliques: "#D9A916",
     perguntas: "#c0392b",
+    paginasVistas: "#6c5ce7",
   };
 
   var ROTULOS_PAGINA = {
-    "/": "Home",
-    "/index.html": "Home",
-    "/institucional.html": "Institucional",
-    "/localizacao.html": "Localização",
+    "": "Home",
+    "index.html": "Home",
+    "institucional.html": "Institucional",
+    "localizacao.html": "Localização",
   };
+
+  var ROTULOS_TIPO_CLIQUE = {
+    whatsapp: "Chamar no WhatsApp",
+    "abrir-chat": "Abrir chat com a IA",
+    "abrir-agendamento": "Abrir formulário de agendamento",
+    "consultar-servico": "Consultar um serviço",
+  };
+
+  var ROTULOS_BLOCO = {
+    visitantes: "Visitantes (portão)",
+    agendamentos: "Agendamentos",
+    cliques: "Cliques",
+    perguntas_ia: "Perguntas à IA",
+    paginas_vistas: "Páginas vistas",
+  };
+
+  var TABELAS_ATIVIDADE = ["visitantes", "agendamentos", "cliques", "perguntas_ia", "paginas_vistas"];
 
   var elementos = {};
   var grafico = null;
-  var seriesAtivas = { visitantes: true, agendamentos: true, cliques: true, perguntas: true };
+  var seriesAtivas = {
+    visitantes: true,
+    agendamentos: true,
+    cliques: true,
+    perguntas: true,
+    paginasVistas: true,
+  };
   var secoesCarregadas = {};
 
   function cliente() {
     return window.RemopSupabase.client;
   }
 
+  // Site publicado sob subpasta (ex.: /remop-retifica/institucional.html) —
+  // compara só o nome do arquivo, não o caminho inteiro. Um caminho que
+  // termina em "/" (ex.: "/remop-retifica/") é a raiz, não um arquivo com
+  // esse nome — precisa virar "" pra bater com o mapa, não o último
+  // segmento do diretório.
   function rotuloPagina(caminho) {
     if (!caminho) return "–";
-    var limpo = caminho.split("?")[0];
-    return ROTULOS_PAGINA[limpo] || limpo;
+    var limpo = caminho.split("?")[0].split("#")[0];
+    var arquivo = /\/$/.test(limpo) ? "" : limpo.split("/").pop() || "";
+    return ROTULOS_PAGINA.hasOwnProperty(arquivo) ? ROTULOS_PAGINA[arquivo] : arquivo || limpo || "Home";
+  }
+
+  function rotuloTipoClique(tipo) {
+    return ROTULOS_TIPO_CLIQUE[tipo] || tipo || "–";
+  }
+
+  function origemDoReferrer(referencia) {
+    if (!referencia) return "Direto / link direto";
+    try {
+      var host = new URL(referencia).hostname.replace(/^www\./, "");
+      var hostAtual = location.hostname.replace(/^www\./, "");
+      if (host === hostAtual) return "Navegação interna";
+      if (host.indexOf("google") !== -1) return "Google";
+      if (host.indexOf("instagram") !== -1) return "Instagram";
+      if (host.indexOf("facebook") !== -1) return "Facebook";
+      if (host.indexOf("whatsapp") !== -1) return "WhatsApp";
+      if (host.indexOf("bing") !== -1) return "Bing";
+      return host;
+    } catch (erro) {
+      return "Direto / link direto";
+    }
   }
 
   function formatarDataCurta(data) {
@@ -71,12 +128,53 @@
     return dias;
   }
 
-  async function buscarTabela(tabela, desde) {
-    var query = cliente().from(tabela).select("*");
+  function calcularJanelaAnterior(dias) {
+    var inicio = dias[0];
+    var inicioAnterior = new Date(inicio);
+    inicioAnterior.setDate(inicioAnterior.getDate() - dias.length);
+    return { desde: inicioAnterior, ate: inicio };
+  }
+
+  // ---------------------------------------------------------------------
+  // Camada de dados — sempre ordenada e limitada/paginada, nunca um
+  // select("*") solto (trava com uso real depois de alguns meses).
+  // ---------------------------------------------------------------------
+  async function buscarTodos(tabela) {
+    var resultado = await cliente().from(tabela).select("*").order("criado_em", { ascending: false }).limit(1000);
+    if (resultado.error) throw resultado.error;
+    return resultado.data || [];
+  }
+
+  async function buscarPeriodo(tabela, desde, ate, limite) {
+    var query = cliente().from(tabela).select("*").order("criado_em", { ascending: false });
     if (desde) query = query.gte("criado_em", desde.toISOString());
+    if (ate) query = query.lt("criado_em", ate.toISOString());
+    query = query.limit(limite || 1000);
     var resultado = await query;
     if (resultado.error) throw resultado.error;
     return resultado.data || [];
+  }
+
+  async function buscarPagina(tabela, opcoes) {
+    opcoes = opcoes || {};
+    var pagina = opcoes.pagina || 0;
+    var porPagina = opcoes.porPagina || PAGINACAO_TAMANHO;
+    var inicio = pagina * porPagina;
+    var query = cliente().from(tabela).select("*").order("criado_em", { ascending: false });
+    if (opcoes.filtroTexto) query = query.ilike(opcoes.colunaFiltro || "nome", "%" + opcoes.filtroTexto + "%");
+    query = query.range(inicio, inicio + porPagina - 1);
+    var resultado = await query;
+    if (resultado.error) throw resultado.error;
+    return resultado.data || [];
+  }
+
+  async function contarTotal(tabela, opcoes) {
+    opcoes = opcoes || {};
+    var query = cliente().from(tabela).select("*", { count: "exact", head: true });
+    if (opcoes.filtroTexto) query = query.ilike(opcoes.colunaFiltro || "nome", "%" + opcoes.filtroTexto + "%");
+    var resultado = await query;
+    if (resultado.error) throw resultado.error;
+    return resultado.count || 0;
   }
 
   function ordenarPorDataDesc(linhas) {
@@ -98,6 +196,72 @@
       });
     });
     return contagem;
+  }
+
+  function contarUnicos(linhas, campo) {
+    var vistos = {};
+    var total = 0;
+    linhas.forEach(function (linha) {
+      var valor = linha[campo];
+      if (valor && !vistos[valor]) {
+        vistos[valor] = true;
+        total++;
+      }
+    });
+    return total;
+  }
+
+  function agruparEContar(linhas, extrairRotulo) {
+    var contagem = {};
+    linhas.forEach(function (linha) {
+      var rotulo = extrairRotulo(linha) || "–";
+      contagem[rotulo] = (contagem[rotulo] || 0) + 1;
+    });
+    return Object.keys(contagem)
+      .map(function (rotulo) { return { rotulo: rotulo, total: contagem[rotulo] }; })
+      .sort(function (a, b) { return b.total - a.total; });
+  }
+
+  // ---------------------------------------------------------------------
+  // Helpers de tabela (usados no dashboard e em Clientes)
+  // ---------------------------------------------------------------------
+  function linhaVazia(colSpan, texto) {
+    var tr = document.createElement("tr");
+    var td = document.createElement("td");
+    td.colSpan = colSpan;
+    td.textContent = texto;
+    tr.appendChild(td);
+    return tr;
+  }
+
+  function linhaTabela(celulas, indicesTextoLongo) {
+    var tr = document.createElement("tr");
+    celulas.forEach(function (texto, indice) {
+      var td = document.createElement("td");
+      td.textContent = texto;
+      if (indicesTextoLongo && indicesTextoLongo.indexOf(indice) !== -1) {
+        td.classList.add("admin-celula-texto");
+      }
+      tr.appendChild(td);
+    });
+    return tr;
+  }
+
+  function renderizarTabelaAgrupada(seletor, itens, mensagemVazia) {
+    var corpo = elementos.painel.querySelector(seletor + " tbody");
+    corpo.innerHTML = "";
+    if (!itens.length) {
+      corpo.appendChild(linhaVazia(2, mensagemVazia));
+      return;
+    }
+    itens.forEach(function (item) {
+      corpo.appendChild(linhaTabela([item.rotulo, item.total]));
+    });
+  }
+
+  function exibirStatus(elemento, mensagem, tipo) {
+    elemento.textContent = mensagem;
+    elemento.className = "mensagem-status" + (tipo ? " mensagem-status--" + tipo : "");
   }
 
   // ---------------------------------------------------------------------
@@ -142,131 +306,286 @@
   }
 
   // ---------------------------------------------------------------------
-  // Dashboard
+  // Dashboard — efeito 3D/cinematográfico
   // ---------------------------------------------------------------------
-  function atualizarStats(totais) {
-    Object.keys(totais).forEach(function (chave) {
-      var el = elementos.painel.querySelector('[data-stat="' + chave + '"]');
-      if (el) el.textContent = totais[chave];
-    });
+  function animarValor(elemento, valorFinal, formatar) {
+    formatar = formatar || function (v) { return String(v); };
+    if (REDUZ_MOVIMENTO || !window.requestAnimationFrame) {
+      elemento.textContent = formatar(valorFinal);
+      return;
+    }
+    var inicio = null;
+    var duracao = 800;
+    function passo(agora) {
+      if (!inicio) inicio = agora;
+      var progresso = Math.min((agora - inicio) / duracao, 1);
+      var facilitado = 1 - Math.pow(1 - progresso, 3);
+      elemento.textContent = formatar(Math.round(valorFinal * facilitado));
+      if (progresso < 1) requestAnimationFrame(passo);
+      else elemento.textContent = formatar(valorFinal);
+    }
+    requestAnimationFrame(passo);
+  }
+
+  function calcularVariacao(atual, anterior) {
+    if (!anterior) {
+      return atual > 0
+        ? { texto: "▲ novo no período", direcao: "alta" }
+        : { texto: "sem variação", direcao: "neutro" };
+    }
+    var percentual = Math.round(((atual - anterior) / anterior) * 100);
+    var seta = percentual > 0 ? "▲ " : percentual < 0 ? "▼ " : "";
+    return {
+      texto: seta + (percentual > 0 ? "+" : "") + percentual + "% vs. período anterior",
+      direcao: percentual > 0 ? "alta" : percentual < 0 ? "baixa" : "neutro",
+    };
+  }
+
+  function definirKpi(chave, valor, variacao, formatar) {
+    var card = elementos.painel.querySelector('[data-kpi="' + chave + '"]');
+    if (!card) return;
+    animarValor(card.querySelector("[data-kpi-numero]"), valor, formatar);
+    var variacaoEl = card.querySelector("[data-kpi-variacao]");
+    variacaoEl.textContent = variacao.texto;
+    variacaoEl.className = "admin-kpi-card__variacao admin-kpi-card__variacao--" + variacao.direcao;
+  }
+
+  function renderizarResumo(porTabela) {
+    var resumoEl = elementos.painel.querySelector("[data-admin-resumo]");
+    var paginasVistas = porTabela.paginas_vistas;
+    var agendamentos = porTabela.agendamentos;
+    var visitantesGate = porTabela.visitantes;
+
+    if (paginasVistas.erro || agendamentos.erro || visitantesGate.erro) {
+      resumoEl.textContent = "Alguns dados não puderam ser carregados agora — veja o aviso acima.";
+      return;
+    }
+
+    var unicos = contarUnicos(paginasVistas.linhas, "visitante_id");
+    var totalAgendamentos = agendamentos.linhas.length;
+    var totalGate = visitantesGate.linhas.length;
+
+    if (!unicos && !totalGate) {
+      resumoEl.textContent =
+        "Ainda sem visitas registradas neste período — assim que alguém acessar o site, os números aparecem aqui.";
+      return;
+    }
+
+    var conversao = totalGate ? Math.round((totalAgendamentos / totalGate) * 100) : 0;
+    resumoEl.textContent =
+      unicos +
+      (unicos === 1 ? " pessoa visitou" : " pessoas visitaram") +
+      " o site nesse período, " +
+      totalAgendamentos +
+      (totalAgendamentos === 1 ? " pediu" : " pediram") +
+      " avaliação — " +
+      conversao +
+      "% de conversão do portão de entrada.";
+  }
+
+  function renderizarKpis(porTabela) {
+    var visitantesGate = porTabela.visitantes;
+    var agendamentos = porTabela.agendamentos;
+    var cliques = porTabela.cliques;
+    var paginasVistas = porTabela.paginas_vistas;
+
+    if (!paginasVistas.erro) {
+      var unicosAtual = contarUnicos(paginasVistas.linhas, "visitante_id");
+      var unicosAnterior = contarUnicos(paginasVistas.linhasAnteriores, "visitante_id");
+      definirKpi("visitantesUnicos", unicosAtual, calcularVariacao(unicosAtual, unicosAnterior));
+    }
+
+    if (!agendamentos.erro) {
+      definirKpi(
+        "agendamentos",
+        agendamentos.linhas.length,
+        calcularVariacao(agendamentos.linhas.length, agendamentos.linhasAnteriores.length)
+      );
+    }
+
+    if (!cliques.erro) {
+      definirKpi(
+        "cliques",
+        cliques.linhas.length,
+        calcularVariacao(cliques.linhas.length, cliques.linhasAnteriores.length)
+      );
+    }
+
+    if (!visitantesGate.erro && !agendamentos.erro) {
+      var conversaoAtual = visitantesGate.linhas.length
+        ? Math.round((agendamentos.linhas.length / visitantesGate.linhas.length) * 100)
+        : 0;
+      var conversaoAnterior = visitantesGate.linhasAnteriores.length
+        ? Math.round((agendamentos.linhasAnteriores.length / visitantesGate.linhasAnteriores.length) * 100)
+        : 0;
+      definirKpi(
+        "conversao",
+        conversaoAtual,
+        calcularVariacao(conversaoAtual, conversaoAnterior),
+        function (v) { return v + "%"; }
+      );
+    }
+
+    renderizarResumo(porTabela);
+  }
+
+  function construirGradiente(ctx, cor) {
+    var gradiente = ctx.createLinearGradient(0, 0, 0, 300);
+    gradiente.addColorStop(0, cor + "55");
+    gradiente.addColorStop(1, cor + "00");
+    return gradiente;
   }
 
   function montarGrafico(dias, series) {
     var rotulos = dias.map(formatarDataCurta);
-    var datasets = [
-      { chave: "visitantes", label: "Visitantes" },
+    var ctx = elementos.canvas.getContext("2d");
+    var definicoes = [
+      { chave: "visitantes", label: "Visitantes (portão)" },
       { chave: "agendamentos", label: "Agendamentos" },
       { chave: "cliques", label: "Cliques" },
       { chave: "perguntas", label: "Perguntas IA" },
-    ].map(function (item) {
+      { chave: "paginasVistas", label: "Páginas vistas" },
+    ];
+    var datasets = definicoes.map(function (item) {
+      var cor = CORES[item.chave];
       return {
         label: item.label,
         data: series[item.chave],
-        borderColor: CORES[item.chave],
-        backgroundColor: CORES[item.chave],
-        tension: 0.3,
+        borderColor: cor,
+        backgroundColor: construirGradiente(ctx, cor),
+        fill: true,
+        borderWidth: 2,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 4,
         hidden: !seriesAtivas[item.chave],
         _chave: item.chave,
       };
     });
 
     if (grafico) grafico.destroy();
-    grafico = new Chart(elementos.canvas.getContext("2d"), {
+    grafico = new Chart(ctx, {
       type: "line",
       data: { labels: rotulos, datasets: datasets },
       options: {
         responsive: true,
+        animation: REDUZ_MOVIMENTO ? false : { duration: 700, easing: "easeOutCubic" },
+        interaction: { mode: "index", intersect: false },
         plugins: { legend: { display: false } },
         scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
       },
     });
   }
 
-  function preencherTabelaPerguntas(linhas) {
-    var corpo = elementos.painel.querySelector("[data-tabela-perguntas] tbody");
-    corpo.innerHTML = "";
-
-    ordenarPorDataDesc(linhas)
-      .slice(0, 25)
-      .forEach(function (linha) {
-        var tr = document.createElement("tr");
-        [formatarDataHora(linha.criado_em), rotuloPagina(linha.pagina), linha.texto || ""].forEach(function (texto) {
-          var td = document.createElement("td");
-          td.textContent = texto;
-          tr.appendChild(td);
-        });
-        corpo.appendChild(tr);
-      });
+  function renderizarGraficoPrincipal(dias, porTabela) {
+    var vazio = dias.map(function () { return 0; });
+    montarGrafico(dias, {
+      visitantes: porTabela.visitantes.erro ? vazio : contarPorDia(porTabela.visitantes.linhas, dias),
+      agendamentos: porTabela.agendamentos.erro ? vazio : contarPorDia(porTabela.agendamentos.linhas, dias),
+      cliques: porTabela.cliques.erro ? vazio : contarPorDia(porTabela.cliques.linhas, dias),
+      perguntas: porTabela.perguntas_ia.erro ? vazio : contarPorDia(porTabela.perguntas_ia.linhas, dias),
+      paginasVistas: porTabela.paginas_vistas.erro ? vazio : contarPorDia(porTabela.paginas_vistas.linhas, dias),
+    });
   }
 
-  function preencherCliquesPorPagina(linhas) {
-    var corpo = elementos.painel.querySelector("[data-tabela-cliques-pagina] tbody");
-    corpo.innerHTML = "";
+  function renderizarFunil(porTabela) {
+    var visitantesGate = porTabela.visitantes;
+    var agendamentos = porTabela.agendamentos;
+    var elVisitantes = elementos.painel.querySelector("[data-funil-visitantes]");
+    var elAgendamentos = elementos.painel.querySelector("[data-funil-agendamentos]");
+    var barra = elementos.painel.querySelector("[data-funil-barra]");
 
-    var contagem = {};
-    linhas.forEach(function (linha) {
-      var chave = rotuloPagina(linha.pagina);
-      contagem[chave] = (contagem[chave] || 0) + 1;
-    });
-
-    var itens = Object.keys(contagem)
-      .map(function (pagina) { return { pagina: pagina, total: contagem[pagina] }; })
-      .sort(function (a, b) { return b.total - a.total; });
-
-    if (!itens.length) {
-      var trVazia = document.createElement("tr");
-      var tdVazia = document.createElement("td");
-      tdVazia.colSpan = 2;
-      tdVazia.textContent = "Nenhum clique registrado no período.";
-      trVazia.appendChild(tdVazia);
-      corpo.appendChild(trVazia);
+    if (visitantesGate.erro || agendamentos.erro) {
+      elVisitantes.textContent = "–";
+      elAgendamentos.textContent = "–";
+      barra.style.setProperty("--preenchido", "0%");
       return;
     }
 
-    itens.forEach(function (item) {
-      var tr = document.createElement("tr");
-      var tdPagina = document.createElement("td");
-      tdPagina.textContent = item.pagina;
-      var tdTotal = document.createElement("td");
-      tdTotal.textContent = item.total;
-      tr.appendChild(tdPagina);
-      tr.appendChild(tdTotal);
-      corpo.appendChild(tr);
+    var totalGate = visitantesGate.linhas.length;
+    var totalAgendamentos = agendamentos.linhas.length;
+    var percentual = totalGate ? Math.min(Math.round((totalAgendamentos / totalGate) * 100), 100) : 0;
+
+    elVisitantes.textContent = totalGate;
+    elAgendamentos.textContent = totalAgendamentos;
+    barra.style.setProperty("--preenchido", percentual + "%");
+  }
+
+  function preencherTabelaPerguntas(linhas) {
+    var corpo = elementos.painel.querySelector("[data-tabela-perguntas] tbody");
+    corpo.innerHTML = "";
+    var ordenadas = ordenarPorDataDesc(linhas).slice(0, 25);
+    if (!ordenadas.length) {
+      corpo.appendChild(linhaVazia(3, "Nenhuma pergunta feita à IA no período."));
+      return;
+    }
+    ordenadas.forEach(function (linha) {
+      corpo.appendChild(
+        linhaTabela([formatarDataHora(linha.criado_em), rotuloPagina(linha.pagina), linha.texto || ""], [2])
+      );
     });
   }
 
-  async function carregarDados() {
-    var periodoDias = parseInt(elementos.periodo.value, 10) || 30;
-    var dias = gerarFaixaDeDias(periodoDias);
-    var desde = dias[0];
+  function renderizarDetalhes(porTabela) {
+    if (!porTabela.cliques.erro) {
+      renderizarTabelaAgrupada(
+        "[data-tabela-cliques-pagina]",
+        agruparEContar(porTabela.cliques.linhas, function (l) { return rotuloPagina(l.pagina); }),
+        "Nenhum clique registrado no período."
+      );
+      renderizarTabelaAgrupada(
+        "[data-tabela-cliques-tipo]",
+        agruparEContar(porTabela.cliques.linhas, function (l) { return rotuloTipoClique(l.tipo); }),
+        "Nenhum clique registrado no período."
+      );
+    }
 
-    var resultados = await Promise.all([
-      buscarTabela("visitantes", desde),
-      buscarTabela("agendamentos", desde),
-      buscarTabela("cliques", desde),
-      buscarTabela("perguntas_ia", desde),
-    ]);
-    var visitantes = resultados[0];
-    var agendamentos = resultados[1];
-    var cliques = resultados[2];
-    var perguntas = resultados[3];
+    if (!porTabela.paginas_vistas.erro) {
+      renderizarTabelaAgrupada(
+        "[data-tabela-paginas-vistas]",
+        agruparEContar(porTabela.paginas_vistas.linhas, function (l) { return rotuloPagina(l.pagina); }),
+        "Nenhuma visita registrada no período."
+      );
+      renderizarTabelaAgrupada(
+        "[data-tabela-origem]",
+        agruparEContar(porTabela.paginas_vistas.linhas, function (l) { return origemDoReferrer(l.referencia); }),
+        "Nenhuma visita registrada no período."
+      );
+    }
 
-    atualizarStats({
-      visitantes: visitantes.length,
-      agendamentos: agendamentos.length,
-      cliques: cliques.length,
-      perguntas: perguntas.length,
-    });
+    if (!porTabela.perguntas_ia.erro) {
+      preencherTabelaPerguntas(porTabela.perguntas_ia.linhas);
+    }
+  }
 
-    montarGrafico(dias, {
-      visitantes: contarPorDia(visitantes, dias),
-      agendamentos: contarPorDia(agendamentos, dias),
-      cliques: contarPorDia(cliques, dias),
-      perguntas: contarPorDia(perguntas, dias),
-    });
+  function renderizarErroBanner(porTabela) {
+    var banner = elementos.painel.querySelector("[data-dashboard-erro]");
+    var comErro = TABELAS_ATIVIDADE.filter(function (tabela) { return porTabela[tabela].erro; });
+    if (!comErro.length) {
+      banner.hidden = true;
+      banner.textContent = "";
+      return;
+    }
+    var nomes = comErro.map(function (tabela) { return ROTULOS_BLOCO[tabela]; }).join(", ");
+    banner.hidden = false;
+    banner.textContent =
+      "Não foi possível carregar agora: " + nomes + ". Os demais números continuam corretos — tente recarregar a página.";
+  }
 
-    preencherTabelaPerguntas(perguntas);
-    preencherCliquesPorPagina(cliques);
+  async function carregarBlocoAtividade(tabela, desde, janelaAnterior) {
+    var bloco = { tabela: tabela, linhas: [], linhasAnteriores: [], erro: null };
+    try {
+      var resultados = await Promise.all([
+        buscarPeriodo(tabela, desde, null, 1000),
+        buscarPeriodo(tabela, janelaAnterior.desde, janelaAnterior.ate, 1000),
+      ]);
+      bloco.linhas = resultados[0];
+      bloco.linhasAnteriores = resultados[1];
+    } catch (erro) {
+      console.error("[Remop Admin] Falha ao carregar " + tabela + ":", erro);
+      bloco.erro = erro;
+    }
+    return bloco;
   }
 
   function iniciarToggles() {
@@ -286,87 +605,227 @@
     });
   }
 
-  // ---------------------------------------------------------------------
-  // Clientes
-  // ---------------------------------------------------------------------
-  var clientesCache = { agendamentos: [], visitantes: [] };
-
-  function linhaTabela(celulas) {
-    var tr = document.createElement("tr");
-    celulas.forEach(function (texto) {
-      var td = document.createElement("td");
-      td.textContent = texto;
-      tr.appendChild(td);
+  function aplicarEntradaEscalonada() {
+    if (REDUZ_MOVIMENTO) return;
+    var alvos = elementos.painel.querySelectorAll(
+      ".admin-kpi-card .admin-kpi-card__inner, .admin-grafico-caixa, .admin-tabela-caixa"
+    );
+    alvos.forEach(function (elemento, indice) {
+      elemento.style.animationDelay = Math.min(indice * 70, 560) + "ms";
+      elemento.classList.add("admin-entrada-3d");
     });
+  }
+
+  function iniciarTiltCards() {
+    if (REDUZ_MOVIMENTO) return;
+    elementos.painel.querySelectorAll(".admin-kpi-card").forEach(function (card) {
+      var quadro = null;
+      card.addEventListener("mousemove", function (evento) {
+        if (quadro) return;
+        quadro = requestAnimationFrame(function () {
+          var retangulo = card.getBoundingClientRect();
+          var x = (evento.clientX - retangulo.left) / retangulo.width - 0.5;
+          var y = (evento.clientY - retangulo.top) / retangulo.height - 0.5;
+          card.style.setProperty("--tilt-x", (y * -12).toFixed(2) + "deg");
+          card.style.setProperty("--tilt-y", (x * 12).toFixed(2) + "deg");
+          quadro = null;
+        });
+      });
+      card.addEventListener("mouseleave", function () {
+        card.style.setProperty("--tilt-x", "0deg");
+        card.style.setProperty("--tilt-y", "0deg");
+      });
+    });
+  }
+
+  async function carregarDashboard() {
+    var periodoDias = parseInt(elementos.periodo.value, 10) || 30;
+    var dias = gerarFaixaDeDias(periodoDias);
+    var desde = dias[0];
+    var janelaAnterior = calcularJanelaAnterior(dias);
+
+    var container = elementos.painel.querySelector("[data-admin-dashboard]");
+    if (container) container.classList.add("is-carregando");
+
+    try {
+      var resultados = await Promise.all(
+        TABELAS_ATIVIDADE.map(function (tabela) {
+          return carregarBlocoAtividade(tabela, desde, janelaAnterior);
+        })
+      );
+      var porTabela = {};
+      resultados.forEach(function (bloco) { porTabela[bloco.tabela] = bloco; });
+
+      renderizarErroBanner(porTabela);
+      renderizarKpis(porTabela);
+      renderizarGraficoPrincipal(dias, porTabela);
+      renderizarFunil(porTabela);
+      renderizarDetalhes(porTabela);
+    } finally {
+      if (container) container.classList.remove("is-carregando");
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Clientes — paginação real + status editável nos agendamentos
+  // ---------------------------------------------------------------------
+  var clientesEstado = {
+    agendamentos: { pagina: 0, itens: [], total: 0 },
+    visitantes: { pagina: 0, itens: [], total: 0 },
+  };
+  var filtroClientesAtual = "";
+
+  async function atualizarStatusAgendamento(id, novoStatus, selectEl) {
+    selectEl.disabled = true;
+    try {
+      var resultado = await cliente().from("agendamentos").update({ status: novoStatus }).eq("id", id);
+      if (resultado.error) throw resultado.error;
+      var item = clientesEstado.agendamentos.itens.filter(function (l) { return l.id === id; })[0];
+      if (item) item.status = novoStatus;
+    } catch (erro) {
+      console.error("[Remop Admin] Falha ao atualizar status do agendamento:", erro);
+      window.alert("Não foi possível salvar esse status agora. Tente de novo.");
+      selectEl.value = (clientesEstado.agendamentos.itens.filter(function (l) { return l.id === id; })[0] || {}).status || "novo";
+    } finally {
+      selectEl.disabled = false;
+    }
+  }
+
+  function linhaAgendamento(linha) {
+    var tr = linhaTabela(
+      [
+        formatarDataHora(linha.criado_em),
+        linha.nome || "–",
+        linha.telefone || "–",
+        linha.servico || "–",
+        linha.mensagem || "–",
+        linha.origem || "–",
+      ],
+      [4]
+    );
+
+    var tdStatus = document.createElement("td");
+    var select = document.createElement("select");
+    select.className = "admin-status-select";
+    ["novo", "confirmado", "atendido"].forEach(function (valor) {
+      var option = document.createElement("option");
+      option.value = valor;
+      option.textContent = valor.charAt(0).toUpperCase() + valor.slice(1);
+      if ((linha.status || "novo") === valor) option.selected = true;
+      select.appendChild(option);
+    });
+    select.addEventListener("change", function () {
+      atualizarStatusAgendamento(linha.id, select.value, select);
+    });
+    tdStatus.appendChild(select);
+    tr.appendChild(tdStatus);
     return tr;
   }
 
-  function renderizarClientes(filtro) {
-    filtro = (filtro || "").trim().toLowerCase();
+  function atualizarInfoPaginacao(tabela) {
+    var estado = clientesEstado[tabela];
+    var info = elementos.painel.querySelector('[data-paginacao-info="' + tabela + '"]');
+    var botao = elementos.painel.querySelector('[data-carregar-mais="' + tabela + '"]');
+    if (info) {
+      info.textContent = estado.itens.length ? "Mostrando " + estado.itens.length + " de " + estado.total : "";
+    }
+    if (botao) botao.hidden = estado.itens.length >= estado.total;
+  }
 
-    var corpoAgendamentos = elementos.painel.querySelector("[data-tabela-agendamentos] tbody");
-    corpoAgendamentos.innerHTML = "";
-    ordenarPorDataDesc(clientesCache.agendamentos)
-      .filter(function (linha) { return !filtro || (linha.nome || "").toLowerCase().indexOf(filtro) !== -1; })
-      .forEach(function (linha) {
-        corpoAgendamentos.appendChild(
-          linhaTabela([
-            formatarDataHora(linha.criado_em),
-            linha.nome || "–",
-            linha.telefone || "–",
-            linha.servico || "–",
-            linha.mensagem || "–",
-            linha.status || "novo",
-          ])
-        );
-      });
+  function renderizarAgendamentos() {
+    var corpo = elementos.painel.querySelector("[data-tabela-agendamentos] tbody");
+    corpo.innerHTML = "";
+    var itens = clientesEstado.agendamentos.itens;
+    if (!itens.length) {
+      corpo.appendChild(linhaVazia(7, "Nenhum agendamento encontrado."));
+    } else {
+      itens.forEach(function (linha) { corpo.appendChild(linhaAgendamento(linha)); });
+    }
+    atualizarInfoPaginacao("agendamentos");
+  }
 
-    var corpoVisitantes = elementos.painel.querySelector("[data-tabela-visitantes] tbody");
-    corpoVisitantes.innerHTML = "";
-    ordenarPorDataDesc(clientesCache.visitantes)
-      .filter(function (linha) { return !filtro || (linha.nome || "").toLowerCase().indexOf(filtro) !== -1; })
-      .forEach(function (linha) {
-        corpoVisitantes.appendChild(
+  function renderizarVisitantesClientes() {
+    var corpo = elementos.painel.querySelector("[data-tabela-visitantes] tbody");
+    corpo.innerHTML = "";
+    var itens = clientesEstado.visitantes.itens;
+    if (!itens.length) {
+      corpo.appendChild(linhaVazia(7, "Nenhum visitante encontrado."));
+    } else {
+      itens.forEach(function (linha) {
+        corpo.appendChild(
           linhaTabela([
             formatarDataHora(linha.criado_em),
             linha.nome || "–",
             linha.whatsapp || "–",
             linha.modelo_carro || "–",
             linha.ano_carro || "–",
+            linha.origem || "–",
             rotuloPagina(linha.pagina),
           ])
         );
       });
+    }
+    atualizarInfoPaginacao("visitantes");
+  }
+
+  async function carregarPaginaClientes(tabela, reiniciar) {
+    var estado = clientesEstado[tabela];
+    if (reiniciar) {
+      estado.pagina = 0;
+      estado.itens = [];
+    }
+
+    var info = elementos.painel.querySelector('[data-paginacao-info="' + tabela + '"]');
+    try {
+      var opcoes = {
+        pagina: estado.pagina,
+        porPagina: PAGINACAO_TAMANHO,
+        filtroTexto: filtroClientesAtual,
+        colunaFiltro: "nome",
+      };
+      var resultados = await Promise.all([buscarPagina(tabela, opcoes), contarTotal(tabela, opcoes)]);
+      estado.itens = reiniciar ? resultados[0] : estado.itens.concat(resultados[0]);
+      estado.total = resultados[1];
+      estado.pagina++;
+    } catch (erro) {
+      console.error("[Remop Admin] Falha ao carregar " + tabela + ":", erro);
+      if (info) info.textContent = "Não foi possível carregar agora — tente de novo.";
+    }
+
+    if (tabela === "agendamentos") renderizarAgendamentos();
+    else renderizarVisitantesClientes();
   }
 
   async function carregarClientes() {
-    try {
-      var resultados = await Promise.all([
-        buscarTabela("agendamentos", null),
-        buscarTabela("visitantes", null),
-      ]);
-      clientesCache.agendamentos = resultados[0];
-      clientesCache.visitantes = resultados[1];
-      renderizarClientes(elementos.filtroClientes.value);
-    } catch (erro) {
-      console.error("[Remop Admin] Falha ao carregar clientes:", erro);
-    }
+    await Promise.all([
+      carregarPaginaClientes("agendamentos", true),
+      carregarPaginaClientes("visitantes", true),
+    ]);
   }
 
   function iniciarFiltroClientes() {
+    var temporizador = null;
     elementos.filtroClientes.addEventListener("input", function () {
-      renderizarClientes(elementos.filtroClientes.value);
+      clearTimeout(temporizador);
+      temporizador = setTimeout(function () {
+        filtroClientesAtual = elementos.filtroClientes.value.trim();
+        carregarPaginaClientes("agendamentos", true);
+        carregarPaginaClientes("visitantes", true);
+      }, 300);
+    });
+  }
+
+  function iniciarCarregarMais() {
+    elementos.painel.querySelectorAll("[data-carregar-mais]").forEach(function (botao) {
+      botao.addEventListener("click", function () {
+        carregarPaginaClientes(botao.getAttribute("data-carregar-mais"), false);
+      });
     });
   }
 
   // ---------------------------------------------------------------------
   // Galeria
   // ---------------------------------------------------------------------
-  function exibirStatus(elemento, mensagem, tipo) {
-    elemento.textContent = mensagem;
-    elemento.className = "mensagem-status" + (tipo ? " mensagem-status--" + tipo : "");
-  }
-
   function renderizarGaleria(fotos) {
     var grade = elementos.galeriaGrid;
     grade.innerHTML = "";
@@ -408,7 +867,7 @@
 
   async function carregarGaleria() {
     try {
-      var fotos = await buscarTabela("galeria", null);
+      var fotos = await buscarTodos("galeria");
       renderizarGaleria(fotos);
     } catch (erro) {
       console.error("[Remop Admin] Falha ao carregar a galeria:", erro);
@@ -455,7 +914,7 @@
       var publica = cliente().storage.from(BUCKET_GALERIA).getPublicUrl(caminho);
       var url = publica.data.publicUrl;
 
-      var existentes = await buscarTabela("galeria", null);
+      var existentes = await buscarTodos("galeria");
       var proximaOrdem = existentes.reduce(function (max, item) { return Math.max(max, item.ordem || 0); }, 0) + 1;
 
       var insercao = await cliente().from("galeria").insert({
@@ -527,7 +986,8 @@
     elementos.login.hidden = true;
     elementos.painel.hidden = false;
     mostrarSecao(secaoAtualDoHash());
-    carregarDados().catch(function (erro) {
+    aplicarEntradaEscalonada();
+    carregarDashboard().catch(function (erro) {
       console.error("[Remop Admin] Falha ao carregar dados do dashboard:", erro);
     });
   }
@@ -585,10 +1045,16 @@
 
     elementos.formLogin.addEventListener("submit", tratarLogin);
     document.querySelector("[data-sair]").addEventListener("click", tratarSair);
-    elementos.periodo.addEventListener("change", carregarDados);
+    elementos.periodo.addEventListener("change", function () {
+      carregarDashboard().catch(function (erro) {
+        console.error("[Remop Admin] Falha ao recarregar dashboard:", erro);
+      });
+    });
     iniciarToggles();
     iniciarNavegacao();
     iniciarFiltroClientes();
+    iniciarCarregarMais();
+    iniciarTiltCards();
     document.querySelector("[data-form-galeria]").addEventListener("submit", enviarFotoGaleria);
     document.querySelector("[data-form-assistente]").addEventListener("submit", salvarAssistente);
 

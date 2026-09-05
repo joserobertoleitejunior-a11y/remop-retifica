@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20260903n">
-<link rel="stylesheet" href="assets/css/admin.css?v=20260903n">
+<link rel="stylesheet" href="assets/css/style.css?v=20260905a">
+<link rel="stylesheet" href="assets/css/admin.css?v=20260905a">
 </head>
 <body class="admin-body">
 
@@ -64,56 +64,128 @@
       </select>
     </div>
 
-    <div class="admin-stats">
-      <div class="admin-stat-card">
-        <span class="admin-stat-card__numero" data-stat="visitantes">–</span>
-        <span class="admin-stat-card__rotulo">Visitantes (portão)</span>
-      </div>
-      <div class="admin-stat-card">
-        <span class="admin-stat-card__numero" data-stat="agendamentos">–</span>
-        <span class="admin-stat-card__rotulo">Agendamentos</span>
-      </div>
-      <div class="admin-stat-card">
-        <span class="admin-stat-card__numero" data-stat="cliques">–</span>
-        <span class="admin-stat-card__rotulo">Cliques em CTAs</span>
-      </div>
-      <div class="admin-stat-card">
-        <span class="admin-stat-card__numero" data-stat="perguntas">–</span>
-        <span class="admin-stat-card__rotulo">Perguntas à IA</span>
-      </div>
-    </div>
+    <p class="admin-erro-topo" data-dashboard-erro hidden></p>
 
-    <div class="admin-grafico-caixa">
-      <div class="admin-grafico-cabecalho">
-        <h2>Movimento no período</h2>
-        <div class="admin-toggles">
-          <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="visitantes" style="--cor-serie:#1E2E63">Visitantes</button>
-          <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="agendamentos" style="--cor-serie:#1f8a4c">Agendamentos</button>
-          <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="cliques" style="--cor-serie:#D9A916">Cliques</button>
-          <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="perguntas" style="--cor-serie:#c0392b">Perguntas IA</button>
+    <div class="admin-camada-executiva" data-admin-dashboard>
+      <p class="admin-resumo" data-admin-resumo>Carregando o movimento do site...</p>
+
+      <div class="admin-kpi-grid">
+        <div class="admin-kpi-card" data-kpi="visitantesUnicos">
+          <div class="admin-kpi-card__inner">
+            <span class="admin-kpi-card__numero" data-kpi-numero>–</span>
+            <span class="admin-kpi-card__rotulo">Visitantes únicos</span>
+            <span class="admin-kpi-card__variacao" data-kpi-variacao>–</span>
+          </div>
+        </div>
+        <div class="admin-kpi-card" data-kpi="agendamentos">
+          <div class="admin-kpi-card__inner">
+            <span class="admin-kpi-card__numero" data-kpi-numero>–</span>
+            <span class="admin-kpi-card__rotulo">Agendamentos</span>
+            <span class="admin-kpi-card__variacao" data-kpi-variacao>–</span>
+          </div>
+        </div>
+        <div class="admin-kpi-card" data-kpi="conversao">
+          <div class="admin-kpi-card__inner">
+            <span class="admin-kpi-card__numero" data-kpi-numero>–</span>
+            <span class="admin-kpi-card__rotulo">Taxa de conversão</span>
+            <span class="admin-kpi-card__variacao" data-kpi-variacao>–</span>
+          </div>
+        </div>
+        <div class="admin-kpi-card" data-kpi="cliques">
+          <div class="admin-kpi-card__inner">
+            <span class="admin-kpi-card__numero" data-kpi-numero>–</span>
+            <span class="admin-kpi-card__rotulo">Cliques em CTAs</span>
+            <span class="admin-kpi-card__variacao" data-kpi-variacao>–</span>
+          </div>
         </div>
       </div>
-      <canvas data-admin-canvas height="300" role="img" aria-label="Gráfico de movimento no período"></canvas>
-    </div>
 
-    <div class="admin-tabela-caixa">
-      <h2>Cliques por página</h2>
-      <p class="admin-texto-apoio">Contagem real dos cliques nos CTAs (WhatsApp, agendamento, IA), agrupada pela página onde aconteceu — sem depender de conta no Google Analytics.</p>
-      <div class="admin-tabela-scroll">
-        <table class="admin-tabela" data-tabela-cliques-pagina>
-          <thead><tr><th>Página</th><th>Cliques</th></tr></thead>
-          <tbody></tbody>
-        </table>
+      <div class="admin-grafico-caixa">
+        <div class="admin-grafico-cabecalho">
+          <h2>Movimento no período</h2>
+          <div class="admin-toggles">
+            <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="visitantes" style="--cor-serie:#1E2E63">Visitantes (portão)</button>
+            <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="agendamentos" style="--cor-serie:#1f8a4c">Agendamentos</button>
+            <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="cliques" style="--cor-serie:#D9A916">Cliques</button>
+            <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="perguntas" style="--cor-serie:#c0392b">Perguntas IA</button>
+            <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="paginasVistas" style="--cor-serie:#6c5ce7">Páginas vistas</button>
+          </div>
+        </div>
+        <canvas data-admin-canvas height="300" role="img" aria-label="Gráfico de movimento no período"></canvas>
+      </div>
+
+      <div class="admin-tabela-caixa admin-funil-caixa">
+        <h2>Funil: visitantes do portão → agendamentos</h2>
+        <p class="admin-texto-apoio">Quantas pessoas que preencheram o portão de entrada realmente pediram uma avaliação — o número que mostra se o site está convertendo.</p>
+        <div class="admin-funil" data-admin-funil>
+          <div class="admin-funil__etapa">
+            <span class="admin-funil__numero" data-funil-visitantes>–</span>
+            <span class="admin-funil__rotulo">Visitantes (portão)</span>
+          </div>
+          <div class="admin-funil__barra">
+            <div class="admin-funil__barra-preenchida" data-funil-barra style="--preenchido: 0%"></div>
+          </div>
+          <div class="admin-funil__etapa">
+            <span class="admin-funil__numero" data-funil-agendamentos>–</span>
+            <span class="admin-funil__rotulo">Agendamentos</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="admin-tabela-caixa">
-      <h2>Últimas perguntas feitas à IA</h2>
-      <div class="admin-tabela-scroll">
-        <table class="admin-tabela" data-tabela-perguntas>
-          <thead><tr><th>Quando</th><th>Página</th><th>Pergunta</th></tr></thead>
-          <tbody></tbody>
-        </table>
+    <div class="admin-camada-detalhe">
+      <div class="admin-tabela-caixa">
+        <h2>Cliques por página</h2>
+        <p class="admin-texto-apoio">Contagem real dos cliques nos CTAs (WhatsApp, agendamento, IA), agrupada pela página onde aconteceu — sem depender de conta no Google Analytics.</p>
+        <div class="admin-tabela-scroll">
+          <table class="admin-tabela" data-tabela-cliques-pagina>
+            <thead><tr><th>Página</th><th>Cliques</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-tabela-caixa">
+        <h2>Cliques por tipo de ação</h2>
+        <p class="admin-texto-apoio">O que o visitante mais faz quando decide agir: chamar no WhatsApp, abrir o chat, pedir agendamento ou consultar um serviço.</p>
+        <div class="admin-tabela-scroll">
+          <table class="admin-tabela" data-tabela-cliques-tipo>
+            <thead><tr><th>Tipo de ação</th><th>Cliques</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-tabela-caixa">
+        <h2>Páginas mais vistas</h2>
+        <p class="admin-texto-apoio">De onde vem o volume de navegação no site, com base em toda visita registrada — não só quem clicou em algo.</p>
+        <div class="admin-tabela-scroll">
+          <table class="admin-tabela" data-tabela-paginas-vistas>
+            <thead><tr><th>Página</th><th>Visualizações</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-tabela-caixa">
+        <h2>Origem do tráfego</h2>
+        <p class="admin-texto-apoio">De onde a internet está trazendo gente pro site — rede social, busca ou navegação direta.</p>
+        <div class="admin-tabela-scroll">
+          <table class="admin-tabela" data-tabela-origem>
+            <thead><tr><th>Origem</th><th>Visitas</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-tabela-caixa">
+        <h2>Últimas perguntas feitas à IA</h2>
+        <div class="admin-tabela-scroll">
+          <table class="admin-tabela" data-tabela-perguntas>
+            <thead><tr><th>Quando</th><th>Página</th><th>Pergunta</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </main>
@@ -127,13 +199,15 @@
 
     <div class="admin-tabela-caixa">
       <h2>Agendamentos</h2>
-      <p class="admin-texto-apoio">Pedidos feitos pelo formulário "Agendar avaliação", mais recentes primeiro.</p>
+      <p class="admin-texto-apoio">Pedidos feitos pelo formulário "Agendar avaliação", mais recentes primeiro. Mude o status conforme for atendendo.</p>
       <div class="admin-tabela-scroll">
         <table class="admin-tabela" data-tabela-agendamentos>
-          <thead><tr><th>Quando</th><th>Nome</th><th>Telefone</th><th>Serviço</th><th>Mensagem</th><th>Status</th></tr></thead>
+          <thead><tr><th>Quando</th><th>Nome</th><th>Telefone</th><th>Serviço</th><th>Mensagem</th><th>Origem</th><th>Status</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
+      <p class="admin-paginacao-info" data-paginacao-info="agendamentos"></p>
+      <button class="botao botao--outline botao--sm" type="button" data-carregar-mais="agendamentos" hidden>Carregar mais</button>
     </div>
 
     <div class="admin-tabela-caixa">
@@ -141,10 +215,12 @@
       <p class="admin-texto-apoio">Todo mundo que preencheu nome/WhatsApp/carro pra entrar no site, mais recentes primeiro.</p>
       <div class="admin-tabela-scroll">
         <table class="admin-tabela" data-tabela-visitantes>
-          <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th>Carro</th><th>Ano</th><th>Página</th></tr></thead>
+          <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th>Carro</th><th>Ano</th><th>Origem</th><th>Página</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
+      <p class="admin-paginacao-info" data-paginacao-info="visitantes"></p>
+      <button class="botao botao--outline botao--sm" type="button" data-carregar-mais="visitantes" hidden>Carregar mais</button>
     </div>
   </main>
 
@@ -203,8 +279,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 
-<script src="assets/js/config.js?v=20260903n"></script>
-<script src="assets/js/supabase-init.js?v=20260903n"></script>
-<script src="assets/js/admin.js?v=20260903n"></script>
+<script src="assets/js/config.js?v=20260905a"></script>
+<script src="assets/js/supabase-init.js?v=20260905a"></script>
+<script src="assets/js/admin.js?v=20260905a"></script>
 </body>
 </html>

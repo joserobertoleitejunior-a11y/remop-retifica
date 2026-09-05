@@ -88,29 +88,125 @@
   box-shadow: 0 0 0 3px rgba(246, 201, 69, 0.28);
 }
 
-/* ---------- Cards de estatística ---------- */
-.admin-stats {
+/* ---------- Aviso de erro no topo do dashboard ---------- */
+.admin-erro-topo {
+  background: #fdecea;
+  color: #8a2c22;
+  border: 1px solid #f3c6c1;
+  border-radius: var(--raio);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+}
+.admin-erro-topo[hidden] { display: none; }
+
+/* ---------- Resumo executivo (linguagem natural) ---------- */
+.admin-resumo {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--cor-texto);
+  max-width: 760px;
+  margin: 0 0 18px;
+  font-weight: 600;
+}
+
+/* ---------- Camada executiva (KPIs 3D) ---------- */
+.admin-camada-executiva { perspective: 1400px; }
+
+.admin-kpi-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
   margin-bottom: 24px;
 }
-@media (min-width: 700px) { .admin-stats { grid-template-columns: repeat(4, 1fr); } }
-.admin-stat-card {
+@media (min-width: 700px) { .admin-kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.admin-kpi-card {
   background: #fff;
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio);
   padding: 18px;
   text-align: center;
   min-width: 0;
+  box-shadow: var(--sombra-card);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
 }
-.admin-stat-card__numero {
+.admin-kpi-card:hover { box-shadow: var(--sombra-elevada); }
+.admin-kpi-card__inner { transform-style: preserve-3d; }
+.admin-kpi-card__numero {
   display: block;
   font-family: var(--fonte-titulo);
   font-size: 2rem;
   color: var(--cor-primaria);
+  transform: translateZ(28px);
 }
-.admin-stat-card__rotulo { font-size: 0.82rem; color: var(--cor-texto-claro); }
+.admin-kpi-card__rotulo {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--cor-texto-claro);
+  transform: translateZ(14px);
+}
+.admin-kpi-card__variacao {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  transform: translateZ(10px);
+}
+.admin-kpi-card__variacao--alta { color: #1f8a4c; background: rgba(31, 138, 76, 0.12); }
+.admin-kpi-card__variacao--baixa { color: #c0392b; background: rgba(192, 57, 43, 0.12); }
+.admin-kpi-card__variacao--neutro { color: var(--cor-texto-claro); background: rgba(92, 98, 112, 0.12); }
+
+/* Entrada em cascata — "o painel se monta na tela" */
+@keyframes admin-entrar-3d {
+  from { opacity: 0; transform: rotateX(-14deg) translateZ(-60px) translateY(16px); }
+  to { opacity: 1; transform: rotateX(0) translateZ(0) translateY(0); }
+}
+.admin-entrada-3d { animation: admin-entrar-3d 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Estado de carregamento — pulso suave nos cards */
+@keyframes admin-pulso { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.75; } }
+.is-carregando .admin-kpi-card { animation: admin-pulso 1.1s ease-in-out infinite; }
+
+/* ---------- Funil de conversão (barra 3D) ---------- */
+.admin-funil-caixa { perspective: 900px; }
+.admin-funil { display: flex; align-items: center; gap: 16px; margin-top: 14px; flex-wrap: wrap; }
+.admin-funil__etapa { text-align: center; min-width: 90px; }
+.admin-funil__numero {
+  display: block;
+  font-family: var(--fonte-titulo);
+  font-size: 1.6rem;
+  color: var(--cor-primaria);
+}
+.admin-funil__rotulo { font-size: 0.78rem; color: var(--cor-texto-claro); }
+.admin-funil__barra {
+  flex: 1;
+  min-width: 140px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--cor-fundo-alt);
+  border: 1px solid var(--cor-borda);
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+.admin-funil__barra-preenchida {
+  height: 100%;
+  width: var(--preenchido, 0%);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cor-primaria), var(--cor-acento));
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateZ(6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-entrada-3d { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .admin-kpi-card { transition: none !important; transform: none !important; animation: none !important; }
+  .admin-funil__barra-preenchida { transition: none !important; }
+}
 
 /* ---------- Gráfico e tabela ---------- */
 .admin-grafico-caixa, .admin-tabela-caixa {
@@ -170,7 +266,7 @@
   border-bottom: 1px solid var(--cor-borda);
   white-space: nowrap;
 }
-.admin-tabela td:nth-child(3) { white-space: normal; min-width: 220px; }
+.admin-celula-texto { white-space: normal; min-width: 220px; }
 .admin-tabela th {
   color: var(--cor-texto-claro);
   font-weight: 600;
@@ -178,6 +274,25 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
+
+/* ---------- Status de agendamento / paginação de Clientes ---------- */
+.admin-status-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 6px 26px 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--cor-borda);
+  font-family: inherit;
+  font-size: 0.8rem;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%235C6270' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  cursor: pointer;
+  color: var(--cor-texto);
+}
+.admin-status-select:disabled { opacity: 0.6; cursor: wait; }
+.admin-paginacao-info { font-size: 0.82rem; color: var(--cor-texto-claro); margin: 10px 0 6px; }
 
 /* ---------- Texto de apoio / busca ---------- */
 .admin-texto-apoio { color: var(--cor-texto-claro); font-size: 0.88rem; margin: -6px 0 16px; max-width: 640px; }
