@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20260905b">
-<link rel="stylesheet" href="assets/css/admin.css?v=20260905b">
+<link rel="stylesheet" href="assets/css/style.css?v=20260905c">
+<link rel="stylesheet" href="assets/css/admin.css?v=20260905c">
 </head>
 <body class="admin-body">
 
@@ -55,18 +55,18 @@
 
   <!-- ===================== DASHBOARD ===================== -->
   <main class="admin-conteudo" data-secao="dashboard">
-    <div class="admin-topo">
-      <h1>Dashboard</h1>
-      <select data-periodo aria-label="Período do dashboard">
-        <option value="7">Últimos 7 dias</option>
-        <option value="30" selected>Últimos 30 dias</option>
-        <option value="90">Últimos 90 dias</option>
-      </select>
-    </div>
-
     <p class="admin-erro-topo" data-dashboard-erro hidden></p>
 
-    <div class="admin-camada-executiva" data-admin-dashboard>
+    <div class="admin-camada-executiva admin-palco" data-admin-dashboard>
+      <div class="admin-topo">
+        <h1>Dashboard</h1>
+        <select data-periodo aria-label="Período do dashboard">
+          <option value="7">Últimos 7 dias</option>
+          <option value="30" selected>Últimos 30 dias</option>
+          <option value="90">Últimos 90 dias</option>
+        </select>
+      </div>
+
       <p class="admin-resumo" data-admin-resumo>Carregando o movimento do site...</p>
 
       <div class="admin-kpi-grid">
@@ -170,9 +170,25 @@
 
   <!-- ===================== CLIENTES ===================== -->
   <main class="admin-conteudo" data-secao="clientes" hidden>
-    <div class="admin-topo">
-      <h1>Clientes</h1>
-      <input type="search" data-filtro-clientes placeholder="Buscar por nome..." class="admin-busca">
+    <div class="admin-palco">
+      <div class="admin-topo">
+        <h1>Clientes</h1>
+        <input type="search" data-filtro-clientes placeholder="Buscar por nome..." class="admin-busca">
+      </div>
+      <div class="admin-kpi-grid admin-kpi-grid--compacta">
+        <div class="admin-kpi-card">
+          <div class="admin-kpi-card__inner">
+            <span class="admin-kpi-card__numero" data-clientes-stat="agendamentos">–</span>
+            <span class="admin-kpi-card__rotulo">Agendamentos no total</span>
+          </div>
+        </div>
+        <div class="admin-kpi-card">
+          <div class="admin-kpi-card__inner">
+            <span class="admin-kpi-card__numero" data-clientes-stat="visitantes">–</span>
+            <span class="admin-kpi-card__rotulo">Visitantes cadastrados</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="admin-tabela-caixa">
@@ -204,8 +220,11 @@
 
   <!-- ===================== GALERIA ===================== -->
   <main class="admin-conteudo" data-secao="galeria" hidden>
-    <div class="admin-topo">
-      <h1>Galeria de fotos</h1>
+    <div class="admin-palco">
+      <div class="admin-topo">
+        <h1>Galeria de fotos</h1>
+      </div>
+      <p class="admin-resumo" data-galeria-resumo>Carregando galeria...</p>
     </div>
     <p class="admin-texto-apoio">As fotos adicionadas aqui aparecem automaticamente na galeria da página Institucional, depois das fotos que já existem no site.</p>
 
@@ -230,8 +249,11 @@
 
   <!-- ===================== ASSISTENTE IA ===================== -->
   <main class="admin-conteudo" data-secao="assistente" hidden>
-    <div class="admin-topo">
-      <h1>Assistente de IA</h1>
+    <div class="admin-palco">
+      <div class="admin-topo">
+        <h1>Assistente de IA</h1>
+      </div>
+      <p class="admin-resumo" data-assistente-resumo>Carregando status do assistente...</p>
     </div>
 
     <div class="admin-tabela-caixa">
@@ -257,8 +279,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 
-<script src="assets/js/config.js?v=20260905b"></script>
-<script src="assets/js/supabase-init.js?v=20260905b"></script>
-<script src="assets/js/admin.js?v=20260905b"></script>
+<script src="assets/js/config.js?v=20260905c"></script>
+<script src="assets/js/supabase-init.js?v=20260905c"></script>
+<script src="assets/js/admin.js?v=20260905c"></script>
 </body>
 </html>

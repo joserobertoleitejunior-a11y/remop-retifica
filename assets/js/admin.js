@@ -589,25 +589,34 @@
     });
   }
 
-  function aplicarEntradaEscalonada() {
+  // Reaproveitada em toda seção do painel (Dashboard, Clientes, Galeria,
+  // Assistente) — não é um efeito exclusivo do Dashboard. Remove a classe
+  // assim que a animação termina: sem isso, o "fill: both" prende o
+  // "transform" no valor final da animação pra sempre, e trava qualquer
+  // transform de :hover ou de JS que o elemento devesse ter depois.
+  function aplicarEntradaEscalonada(seletor) {
     if (REDUZ_MOVIMENTO) return;
-    var alvos = elementos.painel.querySelectorAll(
-      ".admin-kpi-card .admin-kpi-card__inner, .admin-grafico-caixa, .admin-tabela-caixa"
-    );
+    var alvos = elementos.painel.querySelectorAll(seletor);
     alvos.forEach(function (elemento, indice) {
       elemento.style.animationDelay = Math.min(indice * 70, 560) + "ms";
       elemento.classList.add("admin-entrada-3d");
+      elemento.addEventListener("animationend", function limpar() {
+        elemento.classList.remove("admin-entrada-3d");
+        elemento.style.animationDelay = "";
+        elemento.removeEventListener("animationend", limpar);
+      });
     });
   }
 
   // O tilt 3D fica sempre ligado (uma deriva lenta e contínua, com fase
   // diferente por card) — não só quando o mouse passa em cima. É isso que
   // faz o efeito aparecer de verdade numa screenshot parada, não só numa
-  // interação que ninguém vê num print.
-  function iniciarTiltCards() {
+  // interação que ninguém vê num print. Reaproveitado pros cards de KPI e
+  // pras fotos da galeria.
+  function iniciarTiltCards(seletor) {
     if (REDUZ_MOVIMENTO || !window.requestAnimationFrame) return;
 
-    elementos.painel.querySelectorAll(".admin-kpi-card").forEach(function (card, indice) {
+    elementos.painel.querySelectorAll(seletor).forEach(function (card, indice) {
       var fase = indice * 1.3;
       var ponteiro = null;
 
@@ -805,6 +814,14 @@
 
     if (tabela === "agendamentos") renderizarAgendamentos();
     else renderizarVisitantesClientes();
+    atualizarStatsClientes();
+  }
+
+  function atualizarStatsClientes() {
+    var elAgendamentos = elementos.painel.querySelector('[data-clientes-stat="agendamentos"]');
+    var elVisitantes = elementos.painel.querySelector('[data-clientes-stat="visitantes"]');
+    if (elAgendamentos) elAgendamentos.textContent = clientesEstado.agendamentos.total;
+    if (elVisitantes) elVisitantes.textContent = clientesEstado.visitantes.total;
   }
 
   async function carregarClientes() {
@@ -837,9 +854,18 @@
   // ---------------------------------------------------------------------
   // Galeria
   // ---------------------------------------------------------------------
+  function atualizarResumoGaleria(total) {
+    var resumoEl = elementos.painel.querySelector("[data-galeria-resumo]");
+    if (!resumoEl) return;
+    resumoEl.textContent = total
+      ? total + (total === 1 ? " foto publicada na galeria." : " fotos publicadas na galeria.")
+      : "Nenhuma foto publicada ainda — adicione a primeira abaixo.";
+  }
+
   function renderizarGaleria(fotos) {
     var grade = elementos.galeriaGrid;
     grade.innerHTML = "";
+    atualizarResumoGaleria(fotos.length);
 
     if (!fotos.length) {
       var vazio = document.createElement("p");
@@ -874,6 +900,9 @@
 
         grade.appendChild(item);
       });
+
+    aplicarEntradaEscalonada(".admin-galeria-item");
+    iniciarTiltCards(".admin-galeria-item");
   }
 
   async function carregarGaleria() {
@@ -950,6 +979,14 @@
   // ---------------------------------------------------------------------
   // Assistente IA
   // ---------------------------------------------------------------------
+  function atualizarResumoAssistente(instrucoes) {
+    var resumoEl = elementos.painel.querySelector("[data-assistente-resumo]");
+    if (!resumoEl) return;
+    resumoEl.textContent = (instrucoes || "").trim()
+      ? "Instruções personalizadas ativas."
+      : "Usando só o comportamento padrão — nenhuma instrução extra definida ainda.";
+  }
+
   async function carregarAssistente() {
     var campo = document.getElementById("assistente-instrucoes");
     try {
@@ -960,6 +997,7 @@
         .maybeSingle();
       if (resultado.error) throw resultado.error;
       campo.value = resultado.data ? resultado.data.instrucoes_extras || "" : "";
+      atualizarResumoAssistente(campo.value);
     } catch (erro) {
       console.error("[Remop Admin] Falha ao carregar config do assistente:", erro);
     }
@@ -982,6 +1020,7 @@
       });
       if (resultado.error) throw resultado.error;
       exibirStatus(statusEl, "Instruções salvas — já valem pra próxima conversa.", "sucesso");
+      atualizarResumoAssistente(campo.value);
     } catch (erro) {
       console.error("[Remop Admin] Falha ao salvar config do assistente:", erro);
       exibirStatus(statusEl, "Não foi possível salvar agora.", "erro");
@@ -997,7 +1036,9 @@
     elementos.login.hidden = true;
     elementos.painel.hidden = false;
     mostrarSecao(secaoAtualDoHash());
-    aplicarEntradaEscalonada();
+    aplicarEntradaEscalonada(
+      ".admin-palco, .admin-kpi-card .admin-kpi-card__inner, .admin-grafico-caixa, .admin-tabela-caixa"
+    );
     carregarDashboard().catch(function (erro) {
       console.error("[Remop Admin] Falha ao carregar dados do dashboard:", erro);
     });
@@ -1065,7 +1106,7 @@
     iniciarNavegacao();
     iniciarFiltroClientes();
     iniciarCarregarMais();
-    iniciarTiltCards();
+    iniciarTiltCards(".admin-kpi-card");
     document.querySelector("[data-form-galeria]").addEventListener("submit", enviarFotoGaleria);
     document.querySelector("[data-form-assistente]").addEventListener("submit", salvarAssistente);
 

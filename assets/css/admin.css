@@ -110,21 +110,23 @@
   font-weight: 600;
 }
 
-/* ---------- Camada executiva (palco escuro com profundidade real) ---------- */
-.admin-camada-executiva {
-  perspective: 1400px;
+/* ---------- Palco escuro com profundidade real ----------
+   Fundo padrão de TODAS as seções do painel (Dashboard, Clientes,
+   Galeria, Assistente) — não é exclusivo do Dashboard, é a linguagem
+   visual do painel inteiro. */
+.admin-palco {
   position: relative;
   overflow: hidden;
   background: radial-gradient(120% 140% at 15% 0%, #263874 0%, #16224f 45%, #0b1330 100%);
   border-radius: calc(var(--raio) + 8px);
-  padding: 30px 22px 26px;
+  padding: 26px 22px 22px;
   margin-bottom: 24px;
   box-shadow: 0 30px 70px -28px rgba(8, 13, 32, 0.6);
 }
 /* Névoas de luz suaves e lentas — dão profundidade e movimento reais ao
    palco escuro sem depender de nenhuma imagem externa. */
-.admin-camada-executiva::before,
-.admin-camada-executiva::after {
+.admin-palco::before,
+.admin-palco::after {
   content: "";
   position: absolute;
   width: 320px;
@@ -135,13 +137,13 @@
   pointer-events: none;
   z-index: 0;
 }
-.admin-camada-executiva::before {
+.admin-palco::before {
   background: radial-gradient(circle, rgba(246, 201, 69, 0.6), transparent 70%);
   top: -130px;
   left: -70px;
   animation: admin-blob-flutuar 15s ease-in-out infinite;
 }
-.admin-camada-executiva::after {
+.admin-palco::after {
   background: radial-gradient(circle, rgba(108, 92, 231, 0.55), transparent 70%);
   bottom: -150px;
   right: -60px;
@@ -151,8 +153,12 @@
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(36px, 26px) scale(1.15); }
 }
-.admin-camada-executiva > * { position: relative; z-index: 1; }
-.admin-camada-executiva .admin-resumo { color: #fff; }
+.admin-palco > * { position: relative; z-index: 1; }
+.admin-palco .admin-resumo { color: #fff; }
+.admin-palco .admin-topo h1 { color: #fff; }
+.admin-palco .admin-topo { margin-bottom: 18px; }
+
+.admin-camada-executiva { perspective: 1400px; }
 
 .admin-kpi-grid {
   display: grid;
@@ -161,6 +167,8 @@
   margin-bottom: 24px;
 }
 @media (min-width: 700px) { .admin-kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+.admin-kpi-grid--compacta { margin-bottom: 0; max-width: 520px; }
+@media (min-width: 700px) { .admin-kpi-grid--compacta { grid-template-columns: repeat(2, minmax(0, 240px)); } }
 
 .admin-kpi-card {
   position: relative;
@@ -266,9 +274,16 @@
 .admin-grafico-caixa, .admin-tabela-caixa {
   background: #fff;
   border: 1px solid var(--cor-borda);
+  border-top: 3px solid var(--cor-acento);
   border-radius: var(--raio);
   padding: 20px;
   margin-bottom: 24px;
+  box-shadow: 0 14px 34px -18px rgba(20, 26, 50, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.admin-grafico-caixa:hover, .admin-tabela-caixa:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 44px -16px rgba(20, 26, 50, 0.32);
 }
 .admin-grafico-cabecalho {
   display: flex;
@@ -347,6 +362,10 @@
 }
 .admin-status-select:disabled { opacity: 0.6; cursor: wait; }
 .admin-paginacao-info { font-size: 0.82rem; color: var(--cor-texto-claro); margin: 10px 0 6px; }
+/* .botao usa "display: inline-flex" no style.css, com a mesma
+   especificidade do [hidden] do navegador — sem essa regra explícita,
+   o atributo hidden nunca esconde o botão "Carregar mais". */
+[data-carregar-mais][hidden] { display: none; }
 
 /* ---------- Texto de apoio / busca ---------- */
 .admin-texto-apoio { color: var(--cor-texto-claro); font-size: 0.88rem; margin: -6px 0 16px; max-width: 640px; }
@@ -370,10 +389,29 @@
 .admin-galeria-item {
   background: #fff;
   border: 1px solid var(--cor-borda);
+  border-top: 3px solid var(--cor-acento);
   border-radius: var(--raio);
   overflow: hidden;
   padding-bottom: 12px;
+  box-shadow: 0 14px 34px -18px rgba(20, 26, 50, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  perspective: 800px;
 }
-.admin-galeria-item img { width: 100%; height: 140px; object-fit: cover; display: block; }
+.admin-galeria-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 44px -16px rgba(20, 26, 50, 0.32);
+}
+.admin-galeria-item img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+}
 .admin-galeria-item p { font-size: 0.82rem; color: var(--cor-texto-claro); margin: 10px 12px; }
 .admin-galeria-item .botao { margin: 0 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-galeria-item, .admin-galeria-item img { transition: none !important; transform: none !important; }
+}
