@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meus agendamentos | Remop Retífica de Motores e Auto Peças</title>
+<meta name="description" content="Consulte ou cancele seu agendamento de avaliação na Remop Retífica só com o número do seu WhatsApp.">
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://joserobertoleitejunior-a11y.github.io/remop-retifica/meus-agendamentos.html">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=20260905f">
+<link rel="stylesheet" href="assets/css/meus-agendamentos.css?v=20260905f">
+</head>
+<body>
+<a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
+
+<header class="cabecalho">
+  <div class="cabecalho__conteudo container">
+    <a class="cabecalho__logo" href="index.html">
+      <img src="assets/img/logo-remop.png" alt="Remop Retífica de Motores e Auto Peças" width="520" height="99">
+    </a>
+
+    <nav class="nav-principal" id="nav-principal" aria-label="Navegação principal">
+      <a href="index.html">Início</a>
+      <a href="institucional.html">Institucional</a>
+      <a href="localizacao.html">Localização</a>
+    </nav>
+
+    <div class="cabecalho__acoes">
+      <a class="cabecalho__contato" data-whatsapp-link href="#" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        (15) 99695-4644
+      </a>
+      <button class="menu-toggle" type="button" aria-controls="nav-principal" aria-expanded="false" aria-label="Abrir menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo-principal">
+  <div class="meus-agendamentos">
+    <div class="container meus-agendamentos__caixa">
+      <h1>Meus agendamentos</h1>
+      <p class="meus-agendamentos__apoio">Digite o número do WhatsApp que você usou pra agendar — mostramos aqui o que está marcado no seu nome, e você pode desmarcar se precisar.</p>
+
+      <form class="meus-agendamentos__form" data-form-buscar novalidate>
+        <div class="campo">
+          <label for="ma-telefone">Seu WhatsApp</label>
+          <input id="ma-telefone" name="telefone" type="tel" inputmode="tel" placeholder="(15) 99999-9999" required autocomplete="tel">
+        </div>
+        <button class="botao botao--primario" type="submit">Buscar</button>
+      </form>
+      <p class="mensagem-status" data-status-busca></p>
+
+      <div class="meus-agendamentos__lista" data-lista-agendamentos hidden></div>
+
+      <div class="meus-agendamentos__novo" data-bloco-novo hidden>
+        <p>Quer marcar uma nova avaliação?</p>
+        <a class="botao botao--whatsapp" href="index.html#agendar">Agendar avaliação</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="rodape">
+  <div class="rodape__base container">
+    &copy; <span id="ano-atual">2026</span> Remop Retífica de Motores e Auto Peças. Todos os direitos reservados. Site por Vibe Coding Process.
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js?v=20260905f"></script>
+<script src="assets/js/supabase-init.js?v=20260905f"></script>
+<script src="assets/js/main.js?v=20260905f"></script>
+<script src="assets/js/meus-agendamentos.js?v=20260905f"></script>
+</body>
+</html>

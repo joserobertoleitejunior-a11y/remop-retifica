@@ -1,0 +1,84 @@
+/* ==========================================================================
+   Meus agendamentos — autoatendimento do cliente por WhatsApp
+   ========================================================================== */
+
+.meus-agendamentos {
+  padding: 60px 0 90px;
+  background: var(--cor-fundo-alt);
+  min-height: 70vh;
+}
+.meus-agendamentos__caixa {
+  max-width: 640px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: var(--raio);
+  padding: 40px 32px;
+  box-shadow: var(--sombra-elevada);
+}
+.meus-agendamentos__caixa h1 {
+  font-family: var(--fonte-titulo);
+  font-size: 2.2rem;
+  margin: 0 0 8px;
+  color: var(--cor-texto);
+}
+.meus-agendamentos__apoio { color: var(--cor-texto-claro); margin: 0 0 28px; }
+
+.meus-agendamentos__form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+.meus-agendamentos__form .campo { flex: 1; min-width: 200px; margin-bottom: 0; }
+
+.meus-agendamentos__lista { margin-top: 28px; display: flex; flex-direction: column; gap: 16px; }
+.meus-agendamentos__vazio { color: var(--cor-texto-claro); text-align: center; padding: 20px 0; margin: 0; }
+
+.meus-agendamentos__item {
+  border: 1px solid var(--cor-borda);
+  border-left: 4px solid var(--cor-acento);
+  border-radius: var(--raio);
+  padding: 16px 18px;
+}
+.meus-agendamentos__item-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.meus-agendamentos__item-cabecalho strong {
+  font-family: var(--fonte-titulo);
+  font-size: 1.15rem;
+  color: var(--cor-texto);
+}
+
+.meus-agendamentos__status {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.meus-agendamentos__status--novo { background: rgba(217, 169, 22, 0.15); color: #96730f; }
+.meus-agendamentos__status--confirmado { background: rgba(30, 46, 99, 0.12); color: var(--cor-primaria); }
+.meus-agendamentos__status--atendido { background: rgba(31, 138, 76, 0.14); color: var(--cor-sucesso); }
+.meus-agendamentos__status--cancelado { background: rgba(192, 57, 43, 0.12); color: #c0392b; }
+
+.meus-agendamentos__data { color: var(--cor-texto-claro); font-size: 0.88rem; margin: 0 0 8px; }
+.meus-agendamentos__mensagem { color: var(--cor-texto-claro); font-size: 0.88rem; font-style: italic; margin: 0 0 12px; }
+
+.meus-agendamentos__novo {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--cor-borda);
+  text-align: center;
+}
+.meus-agendamentos__novo p { color: var(--cor-texto-claro); margin: 0 0 12px; }
+
+@media (max-width: 560px) {
+  .meus-agendamentos__caixa { padding: 28px 20px; }
+  .meus-agendamentos__form { flex-direction: column; align-items: stretch; }
+}

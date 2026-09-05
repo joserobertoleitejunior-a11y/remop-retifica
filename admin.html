@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20260905e">
-<link rel="stylesheet" href="assets/css/admin.css?v=20260905e">
+<link rel="stylesheet" href="assets/css/style.css?v=20260905f">
+<link rel="stylesheet" href="assets/css/admin.css?v=20260905f">
 </head>
 <body class="admin-body">
 
@@ -187,38 +187,16 @@
         </div>
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__inner">
-            <span class="admin-kpi-card__numero" data-clientes-stat="visitantes">–</span>
-            <span class="admin-kpi-card__rotulo">Visitantes cadastrados</span>
+            <span class="admin-kpi-card__numero" data-clientes-stat="clientesUnicos">–</span>
+            <span class="admin-kpi-card__rotulo">Clientes únicos</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="admin-tabela-caixa">
-      <h2>Agendamentos</h2>
-      <p class="admin-texto-apoio">Pedidos feitos pelo formulário "Agendar avaliação", mais recentes primeiro. Mude o status conforme for atendendo.</p>
-      <div class="admin-tabela-scroll">
-        <table class="admin-tabela" data-tabela-agendamentos>
-          <thead><tr><th>Quando</th><th>Nome</th><th>Telefone</th><th>Serviço</th><th>Mensagem</th><th>Origem</th><th>Status</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <p class="admin-paginacao-info" data-paginacao-info="agendamentos"></p>
-      <button class="botao botao--outline botao--sm" type="button" data-carregar-mais="agendamentos" hidden>Carregar mais</button>
-    </div>
-
-    <div class="admin-tabela-caixa">
-      <h2>Visitantes (portão de entrada)</h2>
-      <p class="admin-texto-apoio">Todo mundo que preencheu nome/WhatsApp/carro pra entrar no site, mais recentes primeiro.</p>
-      <div class="admin-tabela-scroll">
-        <table class="admin-tabela" data-tabela-visitantes>
-          <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th>Carro</th><th>Ano</th><th>Origem</th><th>Página</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <p class="admin-paginacao-info" data-paginacao-info="visitantes"></p>
-      <button class="botao botao--outline botao--sm" type="button" data-carregar-mais="visitantes" hidden>Carregar mais</button>
-    </div>
+    <div class="admin-clientes-lista" data-clientes-lista></div>
+    <p class="admin-paginacao-info" data-clientes-paginacao-info></p>
+    <button class="botao botao--outline botao--sm" type="button" data-clientes-mostrar-mais hidden>Mostrar mais clientes</button>
   </main>
 
   <!-- ===================== GALERIA ===================== -->
@@ -283,9 +261,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-<script src="assets/js/config.js?v=20260905e"></script>
-<script src="assets/js/supabase-init.js?v=20260905e"></script>
-<script src="assets/js/dashboard-grafico-3d.js?v=20260905e"></script>
-<script src="assets/js/admin.js?v=20260905e"></script>
+<script src="assets/js/config.js?v=20260905f"></script>
+<script src="assets/js/supabase-init.js?v=20260905f"></script>
+<script src="assets/js/dashboard-grafico-3d.js?v=20260905f"></script>
+<script src="assets/js/admin.js?v=20260905f"></script>
 </body>
 </html>

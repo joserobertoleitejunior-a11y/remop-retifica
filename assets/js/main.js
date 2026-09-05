@@ -87,6 +87,10 @@
     // próprio fluxo do mascote, em qualquer página (o modal existe nas
     // 3 páginas públicas).
     if (agendamento) window.RemopAgendamento = agendamento;
+
+    // Link direto de outra página (ex.: meus-agendamentos.html) abrindo
+    // o modal automaticamente, sem precisar caçar o botão certo.
+    if (agendamento && location.hash === "#agendar") agendamento.abrir();
   }
 
   /**

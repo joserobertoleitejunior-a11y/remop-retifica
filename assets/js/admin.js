@@ -22,7 +22,8 @@
   var PAINEL_EMAIL_FIXO = "painel@remop-retifica.internal";
   var SUFIXO_SENHA_PIN = "-RemopPainel2026!";
   var BUCKET_GALERIA = "galeria";
-  var PAGINACAO_TAMANHO = 50;
+  var CLIENTES_LOTE = 500; // teto de linhas cruas buscadas por tabela — folgado pra escala de uma oficina pequena
+  var CLIENTES_POR_PAGINA = 20;
 
   var REDUZ_MOVIMENTO = !!(
     window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -141,28 +142,6 @@
     var resultado = await query;
     if (resultado.error) throw resultado.error;
     return resultado.data || [];
-  }
-
-  async function buscarPagina(tabela, opcoes) {
-    opcoes = opcoes || {};
-    var pagina = opcoes.pagina || 0;
-    var porPagina = opcoes.porPagina || PAGINACAO_TAMANHO;
-    var inicio = pagina * porPagina;
-    var query = cliente().from(tabela).select("*").order("criado_em", { ascending: false });
-    if (opcoes.filtroTexto) query = query.ilike(opcoes.colunaFiltro || "nome", "%" + opcoes.filtroTexto + "%");
-    query = query.range(inicio, inicio + porPagina - 1);
-    var resultado = await query;
-    if (resultado.error) throw resultado.error;
-    return resultado.data || [];
-  }
-
-  async function contarTotal(tabela, opcoes) {
-    opcoes = opcoes || {};
-    var query = cliente().from(tabela).select("*", { count: "exact", head: true });
-    if (opcoes.filtroTexto) query = query.ilike(opcoes.colunaFiltro || "nome", "%" + opcoes.filtroTexto + "%");
-    var resultado = await query;
-    if (resultado.error) throw resultado.error;
-    return resultado.count || 0;
   }
 
   function ordenarPorDataDesc(linhas) {
@@ -658,148 +637,276 @@
   }
 
   // ---------------------------------------------------------------------
-  // Clientes — paginação real + status editável nos agendamentos
+  // Clientes — perfil por telefone (agrupa agendamentos + visitas do
+  // portão numa única pessoa, em vez de duas tabelas técnicas separadas)
   // ---------------------------------------------------------------------
-  var clientesEstado = {
-    agendamentos: { pagina: 0, itens: [], total: 0 },
-    visitantes: { pagina: 0, itens: [], total: 0 },
+  var ROTULOS_STATUS_AGENDAMENTO = {
+    novo: "Novo",
+    confirmado: "Confirmado",
+    atendido: "Atendido",
+    cancelado: "Cancelado",
   };
+
+  var ICONE_WHATSAPP =
+    '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.83 9.83 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.36.101 11.943c0 2.105.55 4.16 1.595 5.986L0 24l6.335-1.652a11.86 11.86 0 0 0 5.71 1.451h.006c6.598 0 11.972-5.339 11.977-11.958a11.94 11.94 0 0 0-3.508-8.392"/></svg>';
+
+  var clientesTodos = [];
+  var clientesPaginaAtual = 0;
   var filtroClientesAtual = "";
+
+  function normalizarTelefone(numero) {
+    return String(numero || "").replace(/\D/g, "");
+  }
+
+  // Formato de exibição só pra números brasileiros com DDD (10 ou 11
+  // dígitos); qualquer outra coisa aparece como veio, sem forçar formato.
+  function formatarTelefoneExibicao(numero) {
+    var digitos = normalizarTelefone(numero);
+    if (digitos.length === 11) return "(" + digitos.slice(0, 2) + ") " + digitos.slice(2, 7) + "-" + digitos.slice(7);
+    if (digitos.length === 10) return "(" + digitos.slice(0, 2) + ") " + digitos.slice(2, 6) + "-" + digitos.slice(6);
+    return numero || "–";
+  }
+
+  function montarLinkWhatsAppCliente(numero, mensagem) {
+    var digitos = normalizarTelefone(numero);
+    if (!digitos) return "";
+    if (digitos.length <= 11) digitos = "55" + digitos; // já tem DDD, só falta o código do país
+    return "https://wa.me/" + digitos + "?text=" + encodeURIComponent(mensagem || "");
+  }
+
+  function agruparClientes(agendamentos, visitantes) {
+    var mapa = {};
+    function obter(chave) {
+      if (!mapa[chave]) {
+        mapa[chave] = {
+          chave: chave,
+          nome: "",
+          telefone: "",
+          carro: "",
+          ano: "",
+          agendamentos: [],
+          totalVisitas: 0,
+          ultimaAtividade: null,
+        };
+      }
+      return mapa[chave];
+    }
+    function marcarAtividade(registro, criadoEm) {
+      var data = criadoEm ? new Date(criadoEm) : null;
+      if (data && (!registro.ultimaAtividade || data > registro.ultimaAtividade)) registro.ultimaAtividade = data;
+    }
+
+    agendamentos.forEach(function (linha) {
+      var chave = normalizarTelefone(linha.telefone);
+      if (!chave) return;
+      var registro = obter(chave);
+      registro.telefone = linha.telefone;
+      if (linha.nome) registro.nome = linha.nome;
+      registro.agendamentos.push(linha);
+      marcarAtividade(registro, linha.criado_em);
+    });
+
+    visitantes.forEach(function (linha) {
+      var chave = normalizarTelefone(linha.whatsapp);
+      if (!chave) return;
+      var registro = obter(chave);
+      if (!registro.telefone) registro.telefone = linha.whatsapp;
+      if (linha.nome && !registro.nome) registro.nome = linha.nome;
+      if (linha.modelo_carro) registro.carro = linha.modelo_carro;
+      if (linha.ano_carro) registro.ano = linha.ano_carro;
+      registro.totalVisitas++;
+      marcarAtividade(registro, linha.criado_em);
+    });
+
+    return Object.keys(mapa)
+      .map(function (chave) { return mapa[chave]; })
+      .sort(function (a, b) {
+        var ta = a.ultimaAtividade ? a.ultimaAtividade.getTime() : 0;
+        var tb = b.ultimaAtividade ? b.ultimaAtividade.getTime() : 0;
+        return tb - ta;
+      });
+  }
+
+  function encontrarAgendamentoPorId(id) {
+    for (var i = 0; i < clientesTodos.length; i++) {
+      var encontrado = clientesTodos[i].agendamentos.filter(function (a) { return a.id === id; })[0];
+      if (encontrado) return encontrado;
+    }
+    return null;
+  }
 
   async function atualizarStatusAgendamento(id, novoStatus, selectEl) {
     selectEl.disabled = true;
     try {
       var resultado = await cliente().from("agendamentos").update({ status: novoStatus }).eq("id", id);
       if (resultado.error) throw resultado.error;
-      var item = clientesEstado.agendamentos.itens.filter(function (l) { return l.id === id; })[0];
+      var item = encontrarAgendamentoPorId(id);
       if (item) item.status = novoStatus;
     } catch (erro) {
       console.error("[Remop Admin] Falha ao atualizar status do agendamento:", erro);
       window.alert("Não foi possível salvar esse status agora. Tente de novo.");
-      selectEl.value = (clientesEstado.agendamentos.itens.filter(function (l) { return l.id === id; })[0] || {}).status || "novo";
+      selectEl.value = (encontrarAgendamentoPorId(id) || {}).status || "novo";
     } finally {
       selectEl.disabled = false;
     }
   }
 
-  function linhaAgendamento(linha) {
-    var tr = linhaTabela(
-      [
-        formatarDataHora(linha.criado_em),
-        linha.nome || "–",
-        linha.telefone || "–",
-        linha.servico || "–",
-        linha.mensagem || "–",
-        linha.origem || "–",
-      ],
-      [4]
-    );
+  function construirLinhaAgendamento(linha) {
+    var linhaEl = document.createElement("div");
+    linhaEl.className = "admin-agendamento-linha";
 
-    var tdStatus = document.createElement("td");
+    var texto = document.createElement("div");
+    texto.className = "admin-agendamento-linha__texto";
+    var principal = document.createElement("p");
+    principal.textContent = formatarDataHora(linha.criado_em) + " — " + (linha.servico || "Avaliação geral");
+    texto.appendChild(principal);
+    if (linha.mensagem) {
+      var mensagem = document.createElement("p");
+      mensagem.className = "admin-agendamento-linha__mensagem";
+      mensagem.textContent = "“" + linha.mensagem + "”";
+      texto.appendChild(mensagem);
+    }
+    linhaEl.appendChild(texto);
+
     var select = document.createElement("select");
     select.className = "admin-status-select";
-    ["novo", "confirmado", "atendido"].forEach(function (valor) {
+    Object.keys(ROTULOS_STATUS_AGENDAMENTO).forEach(function (valor) {
       var option = document.createElement("option");
       option.value = valor;
-      option.textContent = valor.charAt(0).toUpperCase() + valor.slice(1);
+      option.textContent = ROTULOS_STATUS_AGENDAMENTO[valor];
       if ((linha.status || "novo") === valor) option.selected = true;
       select.appendChild(option);
     });
     select.addEventListener("change", function () {
       atualizarStatusAgendamento(linha.id, select.value, select);
     });
-    tdStatus.appendChild(select);
-    tr.appendChild(tdStatus);
-    return tr;
+    linhaEl.appendChild(select);
+
+    return linhaEl;
   }
 
-  function atualizarInfoPaginacao(tabela) {
-    var estado = clientesEstado[tabela];
-    var info = elementos.painel.querySelector('[data-paginacao-info="' + tabela + '"]');
-    var botao = elementos.painel.querySelector('[data-carregar-mais="' + tabela + '"]');
-    if (info) {
-      info.textContent = estado.itens.length ? "Mostrando " + estado.itens.length + " de " + estado.total : "";
+  function construirCardCliente(registro) {
+    var card = document.createElement("div");
+    card.className = "admin-cliente-card";
+
+    var cabecalho = document.createElement("div");
+    cabecalho.className = "admin-cliente-card__cabecalho";
+
+    var identidade = document.createElement("div");
+    var nome = document.createElement("h3");
+    nome.textContent = registro.nome || "Cliente sem nome";
+    identidade.appendChild(nome);
+    var telefoneEl = document.createElement("p");
+    telefoneEl.className = "admin-cliente-card__telefone";
+    telefoneEl.textContent = formatarTelefoneExibicao(registro.telefone);
+    identidade.appendChild(telefoneEl);
+    cabecalho.appendChild(identidade);
+
+    var linkWhatsApp = montarLinkWhatsAppCliente(
+      registro.telefone,
+      registro.nome ? "Olá, " + registro.nome + "! Aqui é da Remop Retífica." : "Olá! Aqui é da Remop Retífica."
+    );
+    if (linkWhatsApp) {
+      var botaoWhatsApp = document.createElement("a");
+      botaoWhatsApp.className = "botao botao--whatsapp botao--sm";
+      botaoWhatsApp.target = "_blank";
+      botaoWhatsApp.rel = "noopener";
+      botaoWhatsApp.href = linkWhatsApp;
+      botaoWhatsApp.innerHTML = ICONE_WHATSAPP + " Chamar no WhatsApp";
+      cabecalho.appendChild(botaoWhatsApp);
     }
-    if (botao) botao.hidden = estado.itens.length >= estado.total;
-  }
+    card.appendChild(cabecalho);
 
-  function renderizarAgendamentos() {
-    var corpo = elementos.painel.querySelector("[data-tabela-agendamentos] tbody");
-    corpo.innerHTML = "";
-    var itens = clientesEstado.agendamentos.itens;
-    if (!itens.length) {
-      corpo.appendChild(linhaVazia(7, "Nenhum agendamento encontrado."));
-    } else {
-      itens.forEach(function (linha) { corpo.appendChild(linhaAgendamento(linha)); });
-    }
-    atualizarInfoPaginacao("agendamentos");
-  }
+    var resumoPartes = [];
+    if (registro.carro) resumoPartes.push(registro.carro + (registro.ano ? " (" + registro.ano + ")" : ""));
+    resumoPartes.push(registro.totalVisitas + (registro.totalVisitas === 1 ? " visita ao site" : " visitas ao site"));
+    resumoPartes.push(registro.agendamentos.length + (registro.agendamentos.length === 1 ? " agendamento" : " agendamentos"));
+    if (registro.ultimaAtividade) resumoPartes.push("última atividade em " + formatarDataCurta(registro.ultimaAtividade));
 
-  function renderizarVisitantesClientes() {
-    var corpo = elementos.painel.querySelector("[data-tabela-visitantes] tbody");
-    corpo.innerHTML = "";
-    var itens = clientesEstado.visitantes.itens;
-    if (!itens.length) {
-      corpo.appendChild(linhaVazia(7, "Nenhum visitante encontrado."));
-    } else {
-      itens.forEach(function (linha) {
-        corpo.appendChild(
-          linhaTabela([
-            formatarDataHora(linha.criado_em),
-            linha.nome || "–",
-            linha.whatsapp || "–",
-            linha.modelo_carro || "–",
-            linha.ano_carro || "–",
-            linha.origem || "–",
-            rotuloPagina(linha.pagina),
-          ])
-        );
+    var resumo = document.createElement("p");
+    resumo.className = "admin-cliente-card__resumo";
+    resumo.textContent = resumoPartes.join(" · ");
+    card.appendChild(resumo);
+
+    if (registro.agendamentos.length) {
+      var listaAgendamentos = document.createElement("div");
+      listaAgendamentos.className = "admin-cliente-card__agendamentos";
+      ordenarPorDataDesc(registro.agendamentos).forEach(function (agendamento) {
+        listaAgendamentos.appendChild(construirLinhaAgendamento(agendamento));
       });
+      card.appendChild(listaAgendamentos);
     }
-    atualizarInfoPaginacao("visitantes");
+
+    return card;
   }
 
-  async function carregarPaginaClientes(tabela, reiniciar) {
-    var estado = clientesEstado[tabela];
-    if (reiniciar) {
-      estado.pagina = 0;
-      estado.itens = [];
+  function clientesFiltrados() {
+    var filtro = filtroClientesAtual.trim().toLowerCase();
+    if (!filtro) return clientesTodos;
+    var filtroDigitos = normalizarTelefone(filtro);
+    return clientesTodos.filter(function (registro) {
+      var nomeBate = (registro.nome || "").toLowerCase().indexOf(filtro) !== -1;
+      var telefoneBate = filtroDigitos && normalizarTelefone(registro.telefone).indexOf(filtroDigitos) !== -1;
+      return nomeBate || telefoneBate;
+    });
+  }
+
+  function renderizarClientes() {
+    var lista = elementos.painel.querySelector("[data-clientes-lista]");
+    if (!lista) return;
+    lista.innerHTML = "";
+
+    var filtrados = clientesFiltrados();
+    var visiveis = filtrados.slice(0, (clientesPaginaAtual + 1) * CLIENTES_POR_PAGINA);
+
+    if (!visiveis.length) {
+      var vazio = document.createElement("p");
+      vazio.className = "admin-texto-apoio";
+      vazio.textContent = filtroClientesAtual
+        ? "Nenhum cliente encontrado com esse nome ou telefone."
+        : "Nenhum cliente registrado ainda.";
+      lista.appendChild(vazio);
+    } else {
+      visiveis.forEach(function (registro) { lista.appendChild(construirCardCliente(registro)); });
+      aplicarEntradaEscalonada("[data-clientes-lista] .admin-cliente-card");
     }
 
-    var info = elementos.painel.querySelector('[data-paginacao-info="' + tabela + '"]');
-    try {
-      var opcoes = {
-        pagina: estado.pagina,
-        porPagina: PAGINACAO_TAMANHO,
-        filtroTexto: filtroClientesAtual,
-        colunaFiltro: "nome",
-      };
-      var resultados = await Promise.all([buscarPagina(tabela, opcoes), contarTotal(tabela, opcoes)]);
-      estado.itens = reiniciar ? resultados[0] : estado.itens.concat(resultados[0]);
-      estado.total = resultados[1];
-      estado.pagina++;
-    } catch (erro) {
-      console.error("[Remop Admin] Falha ao carregar " + tabela + ":", erro);
-      if (info) info.textContent = "Não foi possível carregar agora — tente de novo.";
-    }
-
-    if (tabela === "agendamentos") renderizarAgendamentos();
-    else renderizarVisitantesClientes();
-    atualizarStatsClientes();
+    var info = elementos.painel.querySelector("[data-clientes-paginacao-info]");
+    var botaoMais = elementos.painel.querySelector("[data-clientes-mostrar-mais]");
+    if (info) info.textContent = filtrados.length ? "Mostrando " + visiveis.length + " de " + filtrados.length + " clientes" : "";
+    if (botaoMais) botaoMais.hidden = visiveis.length >= filtrados.length;
   }
 
   function atualizarStatsClientes() {
+    var totalAgendamentos = 0;
+    clientesTodos.forEach(function (registro) { totalAgendamentos += registro.agendamentos.length; });
     var elAgendamentos = elementos.painel.querySelector('[data-clientes-stat="agendamentos"]');
-    var elVisitantes = elementos.painel.querySelector('[data-clientes-stat="visitantes"]');
-    if (elAgendamentos) elAgendamentos.textContent = clientesEstado.agendamentos.total;
-    if (elVisitantes) elVisitantes.textContent = clientesEstado.visitantes.total;
+    var elClientes = elementos.painel.querySelector('[data-clientes-stat="clientesUnicos"]');
+    if (elAgendamentos) elAgendamentos.textContent = totalAgendamentos;
+    if (elClientes) elClientes.textContent = clientesTodos.length;
   }
 
   async function carregarClientes() {
-    await Promise.all([
-      carregarPaginaClientes("agendamentos", true),
-      carregarPaginaClientes("visitantes", true),
-    ]);
+    var lista = elementos.painel.querySelector("[data-clientes-lista]");
+    try {
+      var resultados = await Promise.all([
+        buscarPeriodo("agendamentos", null, null, CLIENTES_LOTE),
+        buscarPeriodo("visitantes", null, null, CLIENTES_LOTE),
+      ]);
+      clientesTodos = agruparClientes(resultados[0], resultados[1]);
+      clientesPaginaAtual = 0;
+      renderizarClientes();
+      atualizarStatsClientes();
+    } catch (erro) {
+      console.error("[Remop Admin] Falha ao carregar clientes:", erro);
+      if (lista) {
+        lista.innerHTML = "";
+        var erroEl = document.createElement("p");
+        erroEl.className = "admin-texto-apoio";
+        erroEl.textContent = "Não foi possível carregar os clientes agora. Tente recarregar a página.";
+        lista.appendChild(erroEl);
+      }
+    }
   }
 
   function iniciarFiltroClientes() {
@@ -807,18 +914,19 @@
     elementos.filtroClientes.addEventListener("input", function () {
       clearTimeout(temporizador);
       temporizador = setTimeout(function () {
-        filtroClientesAtual = elementos.filtroClientes.value.trim();
-        carregarPaginaClientes("agendamentos", true);
-        carregarPaginaClientes("visitantes", true);
-      }, 300);
+        filtroClientesAtual = elementos.filtroClientes.value;
+        clientesPaginaAtual = 0;
+        renderizarClientes();
+      }, 200);
     });
   }
 
-  function iniciarCarregarMais() {
-    elementos.painel.querySelectorAll("[data-carregar-mais]").forEach(function (botao) {
-      botao.addEventListener("click", function () {
-        carregarPaginaClientes(botao.getAttribute("data-carregar-mais"), false);
-      });
+  function iniciarMostrarMaisClientes() {
+    var botao = elementos.painel.querySelector("[data-clientes-mostrar-mais]");
+    if (!botao) return;
+    botao.addEventListener("click", function () {
+      clientesPaginaAtual++;
+      renderizarClientes();
     });
   }
 
@@ -1076,7 +1184,7 @@
     iniciarToggles();
     iniciarNavegacao();
     iniciarFiltroClientes();
-    iniciarCarregarMais();
+    iniciarMostrarMaisClientes();
     iniciarTiltCards(".admin-kpi-card");
     document.querySelector("[data-form-galeria]").addEventListener("submit", enviarFotoGaleria);
     document.querySelector("[data-form-assistente]").addEventListener("submit", salvarAssistente);

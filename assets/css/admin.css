@@ -478,8 +478,56 @@
 .admin-paginacao-info { font-size: 0.82rem; color: var(--cor-texto-claro); margin: 10px 0 6px; }
 /* .botao usa "display: inline-flex" no style.css, com a mesma
    especificidade do [hidden] do navegador — sem essa regra explícita,
-   o atributo hidden nunca esconde o botão "Carregar mais". */
-[data-carregar-mais][hidden] { display: none; }
+   o atributo hidden nunca esconde o botão "Mostrar mais". */
+[data-clientes-mostrar-mais][hidden] { display: none; }
+
+/* ---------- Clientes — perfil por telefone ---------- */
+.admin-clientes-lista { display: flex; flex-direction: column; gap: 16px; margin-bottom: 8px; }
+
+.admin-cliente-card {
+  background: #fff;
+  border: 1px solid var(--cor-borda);
+  border-top: 3px solid var(--cor-acento);
+  border-radius: var(--raio);
+  padding: 20px;
+  box-shadow: 0 14px 34px -18px rgba(20, 26, 50, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.admin-cliente-card:hover { transform: translateY(-3px); box-shadow: 0 20px 44px -16px rgba(20, 26, 50, 0.32); }
+
+.admin-cliente-card__cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.admin-cliente-card__cabecalho h3 { font-family: var(--fonte-titulo); font-size: 1.3rem; margin: 0; color: var(--cor-texto); }
+.admin-cliente-card__telefone { margin: 2px 0 0; color: var(--cor-texto-claro); font-size: 0.9rem; }
+
+.admin-cliente-card__resumo { color: var(--cor-texto-claro); font-size: 0.85rem; margin: 0 0 14px; }
+
+.admin-cliente-card__agendamentos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.admin-agendamento-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--cor-fundo-alt);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.admin-agendamento-linha__texto p { margin: 0; font-size: 0.88rem; color: var(--cor-texto); }
+.admin-agendamento-linha__mensagem { color: var(--cor-texto-claro) !important; font-style: italic; margin-top: 2px !important; }
 
 /* ---------- Texto de apoio / busca ---------- */
 .admin-texto-apoio { color: var(--cor-texto-claro); font-size: 0.88rem; margin: -6px 0 16px; max-width: 640px; }
