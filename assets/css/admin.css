@@ -110,8 +110,49 @@
   font-weight: 600;
 }
 
-/* ---------- Camada executiva (KPIs 3D) ---------- */
-.admin-camada-executiva { perspective: 1400px; }
+/* ---------- Camada executiva (palco escuro com profundidade real) ---------- */
+.admin-camada-executiva {
+  perspective: 1400px;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(120% 140% at 15% 0%, #263874 0%, #16224f 45%, #0b1330 100%);
+  border-radius: calc(var(--raio) + 8px);
+  padding: 30px 22px 26px;
+  margin-bottom: 24px;
+  box-shadow: 0 30px 70px -28px rgba(8, 13, 32, 0.6);
+}
+/* Névoas de luz suaves e lentas — dão profundidade e movimento reais ao
+   palco escuro sem depender de nenhuma imagem externa. */
+.admin-camada-executiva::before,
+.admin-camada-executiva::after {
+  content: "";
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.32;
+  pointer-events: none;
+  z-index: 0;
+}
+.admin-camada-executiva::before {
+  background: radial-gradient(circle, rgba(246, 201, 69, 0.6), transparent 70%);
+  top: -130px;
+  left: -70px;
+  animation: admin-blob-flutuar 15s ease-in-out infinite;
+}
+.admin-camada-executiva::after {
+  background: radial-gradient(circle, rgba(108, 92, 231, 0.55), transparent 70%);
+  bottom: -150px;
+  right: -60px;
+  animation: admin-blob-flutuar 19s ease-in-out infinite reverse;
+}
+@keyframes admin-blob-flutuar {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(36px, 26px) scale(1.15); }
+}
+.admin-camada-executiva > * { position: relative; z-index: 1; }
+.admin-camada-executiva .admin-resumo { color: #fff; }
 
 .admin-kpi-grid {
   display: grid;
@@ -122,31 +163,43 @@
 @media (min-width: 700px) { .admin-kpi-grid { grid-template-columns: repeat(4, 1fr); } }
 
 .admin-kpi-card {
-  background: #fff;
-  border: 1px solid var(--cor-borda);
+  position: relative;
+  background: linear-gradient(160deg, #26397a 0%, #182253 55%, #0e1638 100%);
+  border: 1px solid rgba(246, 201, 69, 0.2);
   border-radius: var(--raio);
-  padding: 18px;
+  padding: 20px 18px;
   text-align: center;
   min-width: 0;
-  box-shadow: var(--sombra-card);
+  overflow: hidden;
+  box-shadow: 0 18px 38px -14px rgba(6, 10, 26, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transform-style: preserve-3d;
   transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+  transition: box-shadow 0.18s ease-out;
 }
-.admin-kpi-card:hover { box-shadow: var(--sombra-elevada); }
-.admin-kpi-card__inner { transform-style: preserve-3d; }
+.admin-kpi-card::before {
+  content: "";
+  position: absolute;
+  inset: -60% -20% auto -20%;
+  height: 140%;
+  background: radial-gradient(circle at 30% 15%, rgba(246, 201, 69, 0.22), transparent 60%);
+  transform: translateZ(4px);
+  pointer-events: none;
+}
+.admin-kpi-card:hover { box-shadow: 0 26px 55px -16px rgba(6, 10, 26, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+.admin-kpi-card__inner { position: relative; z-index: 1; transform-style: preserve-3d; }
 .admin-kpi-card__numero {
   display: block;
   font-family: var(--fonte-titulo);
-  font-size: 2rem;
-  color: var(--cor-primaria);
-  transform: translateZ(28px);
+  font-size: 2.1rem;
+  color: var(--cor-acento);
+  text-shadow: 0 0 18px rgba(246, 201, 69, 0.45);
+  transform: translateZ(34px);
 }
 .admin-kpi-card__rotulo {
   display: block;
   font-size: 0.82rem;
-  color: var(--cor-texto-claro);
-  transform: translateZ(14px);
+  color: rgba(255, 255, 255, 0.78);
+  transform: translateZ(16px);
 }
 .admin-kpi-card__variacao {
   display: inline-block;
@@ -155,11 +208,11 @@
   font-weight: 700;
   padding: 2px 9px;
   border-radius: 999px;
-  transform: translateZ(10px);
+  transform: translateZ(12px);
 }
-.admin-kpi-card__variacao--alta { color: #1f8a4c; background: rgba(31, 138, 76, 0.12); }
-.admin-kpi-card__variacao--baixa { color: #c0392b; background: rgba(192, 57, 43, 0.12); }
-.admin-kpi-card__variacao--neutro { color: var(--cor-texto-claro); background: rgba(92, 98, 112, 0.12); }
+.admin-kpi-card__variacao--alta { color: #3fd67c; background: rgba(63, 214, 124, 0.16); }
+.admin-kpi-card__variacao--baixa { color: #ff8577; background: rgba(255, 133, 119, 0.16); }
+.admin-kpi-card__variacao--neutro { color: rgba(255, 255, 255, 0.65); background: rgba(255, 255, 255, 0.1); }
 
 /* Entrada em cascata — "o painel se monta na tela" */
 @keyframes admin-entrar-3d {
@@ -206,6 +259,7 @@
   .admin-entrada-3d { animation: none !important; opacity: 1 !important; transform: none !important; }
   .admin-kpi-card { transition: none !important; transform: none !important; animation: none !important; }
   .admin-funil__barra-preenchida { transition: none !important; }
+  .admin-camada-executiva::before, .admin-camada-executiva::after { animation: none !important; }
 }
 
 /* ---------- Gráfico e tabela ---------- */

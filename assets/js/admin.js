@@ -43,13 +43,6 @@
     "localizacao.html": "Localização",
   };
 
-  var ROTULOS_TIPO_CLIQUE = {
-    whatsapp: "Chamar no WhatsApp",
-    "abrir-chat": "Abrir chat com a IA",
-    "abrir-agendamento": "Abrir formulário de agendamento",
-    "consultar-servico": "Consultar um serviço",
-  };
-
   var ROTULOS_BLOCO = {
     visitantes: "Visitantes (portão)",
     agendamentos: "Agendamentos",
@@ -85,10 +78,6 @@
     var limpo = caminho.split("?")[0].split("#")[0];
     var arquivo = /\/$/.test(limpo) ? "" : limpo.split("/").pop() || "";
     return ROTULOS_PAGINA.hasOwnProperty(arquivo) ? ROTULOS_PAGINA[arquivo] : arquivo || limpo || "Home";
-  }
-
-  function rotuloTipoClique(tipo) {
-    return ROTULOS_TIPO_CLIQUE[tipo] || tipo || "–";
   }
 
   function origemDoReferrer(referencia) {
@@ -429,6 +418,17 @@
     renderizarResumo(porTabela);
   }
 
+  // Ordem fixa das séries do gráfico — compartilhada entre a montagem e os
+  // toggles, pra achar o dataset certo por índice em vez de guardar uma
+  // propriedade não-padrão dentro do objeto que o Chart.js gerencia.
+  var SERIES_GRAFICO = [
+    { chave: "visitantes", label: "Visitantes (portão)" },
+    { chave: "agendamentos", label: "Agendamentos" },
+    { chave: "cliques", label: "Cliques" },
+    { chave: "perguntas", label: "Perguntas IA" },
+    { chave: "paginasVistas", label: "Páginas vistas" },
+  ];
+
   function construirGradiente(ctx, cor) {
     var gradiente = ctx.createLinearGradient(0, 0, 0, 300);
     gradiente.addColorStop(0, cor + "55");
@@ -439,18 +439,15 @@
   function montarGrafico(dias, series) {
     var rotulos = dias.map(formatarDataCurta);
     var ctx = elementos.canvas.getContext("2d");
-    var definicoes = [
-      { chave: "visitantes", label: "Visitantes (portão)" },
-      { chave: "agendamentos", label: "Agendamentos" },
-      { chave: "cliques", label: "Cliques" },
-      { chave: "perguntas", label: "Perguntas IA" },
-      { chave: "paginasVistas", label: "Páginas vistas" },
-    ];
-    var datasets = definicoes.map(function (item) {
+    var pontosVazios = dias.map(function () { return 0; });
+    var datasets = SERIES_GRAFICO.map(function (item) {
       var cor = CORES[item.chave];
+      var pontos = series[item.chave];
       return {
         label: item.label,
-        data: series[item.chave],
+        // Chart.js lança exceção síncrona dentro do próprio construtor se
+        // "data" não for um array de verdade — nunca deixar passar direto.
+        data: Array.isArray(pontos) ? pontos : pontosVazios,
         borderColor: cor,
         backgroundColor: construirGradiente(ctx, cor),
         fill: true,
@@ -459,7 +456,6 @@
         pointRadius: 0,
         pointHoverRadius: 4,
         hidden: !seriesAtivas[item.chave],
-        _chave: item.chave,
       };
     });
 
@@ -527,19 +523,6 @@
   }
 
   function renderizarDetalhes(porTabela) {
-    if (!porTabela.cliques.erro) {
-      renderizarTabelaAgrupada(
-        "[data-tabela-cliques-pagina]",
-        agruparEContar(porTabela.cliques.linhas, function (l) { return rotuloPagina(l.pagina); }),
-        "Nenhum clique registrado no período."
-      );
-      renderizarTabelaAgrupada(
-        "[data-tabela-cliques-tipo]",
-        agruparEContar(porTabela.cliques.linhas, function (l) { return rotuloTipoClique(l.tipo); }),
-        "Nenhum clique registrado no período."
-      );
-    }
-
     if (!porTabela.paginas_vistas.erro) {
       renderizarTabelaAgrupada(
         "[data-tabela-paginas-vistas]",
@@ -596,7 +579,8 @@
         botao.classList.toggle("admin-toggle--ativo", seriesAtivas[chave]);
 
         if (!grafico) return;
-        var dataset = grafico.data.datasets.filter(function (d) { return d._chave === chave; })[0];
+        var indice = SERIES_GRAFICO.map(function (item) { return item.chave; }).indexOf(chave);
+        var dataset = grafico.data.datasets[indice];
         if (dataset) {
           dataset.hidden = !seriesAtivas[chave];
           grafico.update();
@@ -616,26 +600,53 @@
     });
   }
 
+  // O tilt 3D fica sempre ligado (uma deriva lenta e contínua, com fase
+  // diferente por card) — não só quando o mouse passa em cima. É isso que
+  // faz o efeito aparecer de verdade numa screenshot parada, não só numa
+  // interação que ninguém vê num print.
   function iniciarTiltCards() {
-    if (REDUZ_MOVIMENTO) return;
-    elementos.painel.querySelectorAll(".admin-kpi-card").forEach(function (card) {
-      var quadro = null;
+    if (REDUZ_MOVIMENTO || !window.requestAnimationFrame) return;
+
+    elementos.painel.querySelectorAll(".admin-kpi-card").forEach(function (card, indice) {
+      var fase = indice * 1.3;
+      var ponteiro = null;
+
+      function passo(tempoMs) {
+        if (!ponteiro) {
+          var t = tempoMs / 1000;
+          var x = Math.sin(t * 0.6 + fase) * 0.35;
+          var y = Math.cos(t * 0.5 + fase) * 0.35;
+          card.style.setProperty("--tilt-x", (y * -10).toFixed(2) + "deg");
+          card.style.setProperty("--tilt-y", (x * 10).toFixed(2) + "deg");
+        }
+        requestAnimationFrame(passo);
+      }
+      requestAnimationFrame(passo);
+
       card.addEventListener("mousemove", function (evento) {
-        if (quadro) return;
-        quadro = requestAnimationFrame(function () {
-          var retangulo = card.getBoundingClientRect();
-          var x = (evento.clientX - retangulo.left) / retangulo.width - 0.5;
-          var y = (evento.clientY - retangulo.top) / retangulo.height - 0.5;
-          card.style.setProperty("--tilt-x", (y * -12).toFixed(2) + "deg");
-          card.style.setProperty("--tilt-y", (x * 12).toFixed(2) + "deg");
-          quadro = null;
-        });
+        var retangulo = card.getBoundingClientRect();
+        ponteiro = {
+          x: (evento.clientX - retangulo.left) / retangulo.width - 0.5,
+          y: (evento.clientY - retangulo.top) / retangulo.height - 0.5,
+        };
+        card.style.setProperty("--tilt-x", (ponteiro.y * -14).toFixed(2) + "deg");
+        card.style.setProperty("--tilt-y", (ponteiro.x * 14).toFixed(2) + "deg");
       });
       card.addEventListener("mouseleave", function () {
-        card.style.setProperty("--tilt-x", "0deg");
-        card.style.setProperty("--tilt-y", "0deg");
+        ponteiro = null;
       });
     });
+  }
+
+  // Cada bloco do dashboard roda isolado — uma exceção (ex.: Chart.js
+  // recusando um dataset malformado) não pode mais derrubar o resto do
+  // dashboard, que já teria dados válidos prontos pra mostrar.
+  function executarComSeguranca(nome, fn) {
+    try {
+      fn();
+    } catch (erro) {
+      console.error("[Remop Admin] Falha ao renderizar " + nome + ":", erro);
+    }
   }
 
   async function carregarDashboard() {
@@ -656,11 +667,11 @@
       var porTabela = {};
       resultados.forEach(function (bloco) { porTabela[bloco.tabela] = bloco; });
 
-      renderizarErroBanner(porTabela);
-      renderizarKpis(porTabela);
-      renderizarGraficoPrincipal(dias, porTabela);
-      renderizarFunil(porTabela);
-      renderizarDetalhes(porTabela);
+      executarComSeguranca("aviso de erro", function () { renderizarErroBanner(porTabela); });
+      executarComSeguranca("KPIs", function () { renderizarKpis(porTabela); });
+      executarComSeguranca("gráfico", function () { renderizarGraficoPrincipal(dias, porTabela); });
+      executarComSeguranca("funil", function () { renderizarFunil(porTabela); });
+      executarComSeguranca("tabelas de detalhe", function () { renderizarDetalhes(porTabela); });
     } finally {
       if (container) container.classList.remove("is-carregando");
     }
