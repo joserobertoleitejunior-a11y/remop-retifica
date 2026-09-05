@@ -39,22 +39,68 @@
 
 /* ---------- Header do painel ---------- */
 .admin-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 14px 24px;
-  background: var(--cor-primaria);
+  background: linear-gradient(120deg, #1c2c62 0%, #131f4a 55%, #0d1738 100%);
   flex-wrap: wrap;
+  box-shadow: 0 10px 26px -16px rgba(6, 10, 26, 0.55);
+}
+.admin-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(246, 201, 69, 0.45), transparent);
 }
 .admin-header__logo { display: flex; }
-.admin-header__logo img { height: 28px; width: auto; display: block; }
-.admin-nav { display: flex; gap: 16px; }
-.admin-nav a { color: rgba(255,255,255,0.75); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
-.admin-nav a[aria-current="page"] { color: #fff; }
+.admin-header__logo img {
+  height: 28px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+.admin-nav { display: flex; flex-wrap: wrap; gap: 4px; }
+.admin-nav a {
+  color: rgba(255, 255, 255, 0.68);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+.admin-nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.admin-nav a[aria-current="page"] {
+  color: #16224f;
+  background: var(--cor-acento);
+  box-shadow: 0 4px 16px -4px rgba(246, 201, 69, 0.6);
+}
+.admin-nav a[aria-current="page"]:hover { color: #16224f; background: var(--cor-acento); }
 .admin-header__acoes { display: flex; gap: 8px; }
-.admin-header .botao--outline { border-color: rgba(255,255,255,0.5); color: #fff; }
-.admin-header .botao--outline:hover { background: rgba(255,255,255,0.14); color: #fff; }
+.admin-header .botao--outline {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+.admin-header .botao--outline:hover {
+  background: rgba(246, 201, 69, 0.16);
+  border-color: var(--cor-acento);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgba(246, 201, 69, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-nav a, .admin-header .botao--outline { transition: none !important; }
+  .admin-header .botao--outline:hover { transform: none !important; }
+}
 
 /* ---------- Conteúdo ---------- */
 .admin-conteudo { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
