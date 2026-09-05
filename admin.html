@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20260905d">
-<link rel="stylesheet" href="assets/css/admin.css?v=20260905d">
+<link rel="stylesheet" href="assets/css/style.css?v=20260905e">
+<link rel="stylesheet" href="assets/css/admin.css?v=20260905e">
 </head>
 <body class="admin-body">
 
@@ -100,7 +100,7 @@
         </div>
       </div>
 
-      <div class="admin-grafico-caixa">
+      <div class="admin-grafico-caixa admin-grafico-caixa--3d">
         <div class="admin-grafico-cabecalho">
           <h2>Movimento no período</h2>
           <div class="admin-toggles">
@@ -111,7 +111,10 @@
             <button class="admin-toggle admin-toggle--ativo" type="button" data-toggle-serie="paginasVistas" style="--cor-serie:#6c5ce7">Páginas vistas</button>
           </div>
         </div>
-        <canvas data-admin-canvas height="300" role="img" aria-label="Gráfico de movimento no período"></canvas>
+        <div class="admin-grafico-3d" data-admin-grafico-3d role="img" aria-label="Gráfico 3D de movimento no período">
+          <p class="admin-grafico-3d__placeholder">Carregando gráfico 3D...</p>
+        </div>
+        <p class="admin-grafico-3d__dica">Arraste pra girar, role pra dar zoom — passe o mouse numa barra pra ver o valor exato.</p>
       </div>
 
       <div class="admin-tabela-caixa admin-funil-caixa">
@@ -277,10 +280,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-<script src="assets/js/config.js?v=20260905d"></script>
-<script src="assets/js/supabase-init.js?v=20260905d"></script>
-<script src="assets/js/admin.js?v=20260905d"></script>
+<script src="assets/js/config.js?v=20260905e"></script>
+<script src="assets/js/supabase-init.js?v=20260905e"></script>
+<script src="assets/js/dashboard-grafico-3d.js?v=20260905e"></script>
+<script src="assets/js/admin.js?v=20260905e"></script>
 </body>
 </html>

@@ -116,23 +116,28 @@
 .admin-topo select {
   appearance: none;
   -webkit-appearance: none;
-  padding: 8px 34px 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--cor-borda);
+  padding: 9px 36px 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(246, 201, 69, 0.35);
   font-family: inherit;
-  font-size: 0.9rem;
-  background-color: #fff;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%235C6270' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  font-weight: 600;
+  font-size: 0.88rem;
+  background-color: rgba(255, 255, 255, 0.07);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23F6C945' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  color: var(--cor-texto);
+  background-position: right 14px center;
+  color: #fff;
   cursor: pointer;
-  transition: border-color .2s ease, box-shadow .2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 16px -8px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
+.admin-topo select:hover { background-color: rgba(255, 255, 255, 0.12); border-color: rgba(246, 201, 69, 0.6); }
 .admin-topo select:focus {
+  outline: none;
   border-color: var(--cor-acento);
-  box-shadow: 0 0 0 3px rgba(246, 201, 69, 0.28);
+  box-shadow: 0 0 0 3px rgba(246, 201, 69, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
+.admin-topo select option { color: var(--cor-texto); background: #fff; }
 
 /* ---------- Aviso de erro no topo do dashboard ---------- */
 .admin-erro-topo {
@@ -373,6 +378,69 @@
 }
 .admin-toggle--ativo { opacity: 1; color: var(--cor-texto); border-color: var(--cor-serie); }
 
+/* ---------- Gráfico 3D (Three.js) — palco escuro dedicado ---------- */
+.admin-grafico-caixa--3d {
+  background: linear-gradient(160deg, #16224f 0%, #0e1638 100%);
+  border-top: 3px solid var(--cor-acento);
+}
+/* A caixa não levanta no hover aqui — o usuário arrasta a cena 3D lá
+   dentro, e a caixa inteira deslizando junto atrapalharia o gesto. */
+.admin-grafico-caixa--3d:hover { transform: none; }
+.admin-grafico-caixa--3d .admin-grafico-cabecalho h2 { color: #fff; }
+.admin-grafico-caixa--3d .admin-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.72);
+}
+.admin-grafico-caixa--3d .admin-toggle--ativo { color: #fff; border-color: var(--cor-serie); }
+.admin-grafico-caixa--3d .admin-toggle:hover { background: rgba(255, 255, 255, 0.12); }
+.admin-grafico-caixa--3d .admin-toggle::before { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4); }
+
+.admin-grafico-3d {
+  position: relative;
+  height: 360px;
+  border-radius: calc(var(--raio) - 2px);
+  overflow: hidden;
+  background: #0b1330;
+  cursor: grab;
+}
+.admin-grafico-3d:active { cursor: grabbing; }
+.admin-grafico-3d canvas { display: block; width: 100%; height: 100%; }
+.admin-grafico-3d__placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+  padding: 0 20px;
+}
+.admin-grafico-3d__tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(11, 19, 48, 0.94);
+  border: 1px solid rgba(246, 201, 69, 0.4);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.6);
+}
+.admin-grafico-3d__dica {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 12px 0 0;
+  text-align: center;
+}
+
 .admin-tabela-scroll { overflow-x: auto; }
 .admin-tabela { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 .admin-tabela th, .admin-tabela td {
@@ -416,14 +484,25 @@
 /* ---------- Texto de apoio / busca ---------- */
 .admin-texto-apoio { color: var(--cor-texto-claro); font-size: 0.88rem; margin: -6px 0 16px; max-width: 640px; }
 .admin-busca {
-  padding: 8px 14px;
+  padding: 9px 16px;
   border-radius: 999px;
-  border: 1px solid var(--cor-borda);
+  border: 1px solid rgba(246, 201, 69, 0.35);
   font-family: inherit;
   font-size: 0.9rem;
   min-width: 220px;
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 16px -8px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
-.admin-busca:focus { border-color: var(--cor-acento); box-shadow: 0 0 0 3px rgba(246, 201, 69, 0.28); }
+.admin-busca::placeholder { color: rgba(255, 255, 255, 0.55); }
+.admin-busca:hover { background-color: rgba(255, 255, 255, 0.12); border-color: rgba(246, 201, 69, 0.6); }
+.admin-busca:focus {
+  outline: none;
+  border-color: var(--cor-acento);
+  background-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 3px rgba(246, 201, 69, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
 
 /* ---------- Galeria ---------- */
 .admin-form-galeria .campo { max-width: 420px; }

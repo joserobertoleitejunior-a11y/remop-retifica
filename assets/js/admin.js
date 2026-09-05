@@ -1,9 +1,9 @@
 /**
  * Painel administrativo — login por PIN (Supabase Auth por baixo dos
- * panos) + dashboard (Chart.js, com KPIs 3D/cinematográficos e dados
- * reais) + Clientes + Galeria + Assistente IA, com dados reais das
- * tabelas que assets/js/analytics.js, visitor-gate.js, lead-form.js e o
- * próprio painel gravam no Supabase.
+ * panos) + dashboard (KPIs 3D/cinematográficos e gráfico 3D em Three.js,
+ * com dados reais) + Clientes + Galeria + Assistente IA, com dados reais
+ * das tabelas que assets/js/analytics.js, visitor-gate.js, lead-form.js e
+ * o próprio painel gravam no Supabase.
  *
  * Login por PIN: o Supabase Auth continua sendo o mecanismo real por
  * trás (é o que autoriza a leitura protegida pelas políticas de RLS),
@@ -54,7 +54,6 @@
   var TABELAS_ATIVIDADE = ["visitantes", "agendamentos", "cliques", "perguntas_ia", "paginas_vistas"];
 
   var elementos = {};
-  var grafico = null;
   var seriesAtivas = {
     visitantes: true,
     agendamentos: true,
@@ -278,6 +277,13 @@
       if (nome === "galeria") carregarGaleria();
       if (nome === "assistente") carregarAssistente();
     }
+
+    // O gráfico 3D fica renderizando (WebGL) o tempo todo, mesmo fora de
+    // tela — pausa quando sai do Dashboard, retoma quando volta.
+    if (window.RemopGrafico3D) {
+      if (nome === "dashboard") window.RemopGrafico3D.retomar();
+      else window.RemopGrafico3D.pausar();
+    }
   }
 
   function iniciarNavegacao() {
@@ -418,69 +424,41 @@
     renderizarResumo(porTabela);
   }
 
-  // Ordem fixa das séries do gráfico — compartilhada entre a montagem e os
-  // toggles, pra achar o dataset certo por índice em vez de guardar uma
-  // propriedade não-padrão dentro do objeto que o Chart.js gerencia.
-  var SERIES_GRAFICO = [
-    { chave: "visitantes", label: "Visitantes (portão)" },
-    { chave: "agendamentos", label: "Agendamentos" },
-    { chave: "cliques", label: "Cliques" },
-    { chave: "perguntas", label: "Perguntas IA" },
-    { chave: "paginasVistas", label: "Páginas vistas" },
-  ];
-
-  function construirGradiente(ctx, cor) {
-    var gradiente = ctx.createLinearGradient(0, 0, 0, 300);
-    gradiente.addColorStop(0, cor + "55");
-    gradiente.addColorStop(1, cor + "00");
-    return gradiente;
-  }
-
-  function montarGrafico(dias, series) {
-    var rotulos = dias.map(formatarDataCurta);
-    var ctx = elementos.canvas.getContext("2d");
-    var pontosVazios = dias.map(function () { return 0; });
-    var datasets = SERIES_GRAFICO.map(function (item) {
-      var cor = CORES[item.chave];
-      var pontos = series[item.chave];
-      return {
-        label: item.label,
-        // Chart.js lança exceção síncrona dentro do próprio construtor se
-        // "data" não for um array de verdade — nunca deixar passar direto.
-        data: Array.isArray(pontos) ? pontos : pontosVazios,
-        borderColor: cor,
-        backgroundColor: construirGradiente(ctx, cor),
-        fill: true,
-        borderWidth: 2,
-        tension: 0.35,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-        hidden: !seriesAtivas[item.chave],
-      };
-    });
-
-    if (grafico) grafico.destroy();
-    grafico = new Chart(ctx, {
-      type: "line",
-      data: { labels: rotulos, datasets: datasets },
-      options: {
-        responsive: true,
-        animation: REDUZ_MOVIMENTO ? false : { duration: 700, easing: "easeOutCubic" },
-        interaction: { mode: "index", intersect: false },
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
-      },
-    });
-  }
+  // Ordem fixa das séries do gráfico 3D — compartilhada entre a montagem e
+  // os toggles, pra achar o grupo de barras certo por chave.
+  var ORDEM_SERIES_GRAFICO = ["visitantes", "agendamentos", "cliques", "perguntas", "paginasVistas"];
+  var ROTULOS_SERIE_GRAFICO = {
+    visitantes: "Visitantes (portão)",
+    agendamentos: "Agendamentos",
+    cliques: "Cliques",
+    perguntas: "Perguntas IA",
+    paginasVistas: "Páginas vistas",
+  };
 
   function renderizarGraficoPrincipal(dias, porTabela) {
     var vazio = dias.map(function () { return 0; });
-    montarGrafico(dias, {
+    var series = {
       visitantes: porTabela.visitantes.erro ? vazio : contarPorDia(porTabela.visitantes.linhas, dias),
       agendamentos: porTabela.agendamentos.erro ? vazio : contarPorDia(porTabela.agendamentos.linhas, dias),
       cliques: porTabela.cliques.erro ? vazio : contarPorDia(porTabela.cliques.linhas, dias),
       perguntas: porTabela.perguntas_ia.erro ? vazio : contarPorDia(porTabela.perguntas_ia.linhas, dias),
       paginasVistas: porTabela.paginas_vistas.erro ? vazio : contarPorDia(porTabela.paginas_vistas.linhas, dias),
+    };
+
+    window.RemopGrafico3D.montar(elementos.grafico3d, {
+      dias: dias,
+      series: series,
+      seriesAtivas: seriesAtivas,
+      cores: CORES,
+      ordemSeries: ORDEM_SERIES_GRAFICO,
+      opcoes: {
+        reduzMovimento: REDUZ_MOVIMENTO,
+        formatarTooltip: function (dadosBarra) {
+          var dia = dias[dadosBarra.indiceDia];
+          var rotulo = ROTULOS_SERIE_GRAFICO[dadosBarra.chave] || dadosBarra.chave;
+          return formatarDataCurta(dia) + " — " + rotulo + ": " + dadosBarra.valor;
+        },
+      },
     });
   }
 
@@ -577,14 +555,7 @@
         var chave = botao.getAttribute("data-toggle-serie");
         seriesAtivas[chave] = !seriesAtivas[chave];
         botao.classList.toggle("admin-toggle--ativo", seriesAtivas[chave]);
-
-        if (!grafico) return;
-        var indice = SERIES_GRAFICO.map(function (item) { return item.chave; }).indexOf(chave);
-        var dataset = grafico.data.datasets[indice];
-        if (dataset) {
-          dataset.hidden = !seriesAtivas[chave];
-          grafico.update();
-        }
+        window.RemopGrafico3D.definirVisibilidade(chave, seriesAtivas[chave]);
       });
     });
   }
@@ -647,9 +618,9 @@
     });
   }
 
-  // Cada bloco do dashboard roda isolado — uma exceção (ex.: Chart.js
-  // recusando um dataset malformado) não pode mais derrubar o resto do
-  // dashboard, que já teria dados válidos prontos pra mostrar.
+  // Cada bloco do dashboard roda isolado — uma exceção em qualquer um
+  // (ex.: o gráfico 3D falhando por falta de WebGL) não pode mais
+  // derrubar o resto do dashboard, que já teria dados válidos pra mostrar.
   function executarComSeguranca(nome, fn) {
     try {
       fn();
@@ -1081,7 +1052,7 @@
       painel: document.querySelector("[data-admin-painel]"),
       formLogin: document.querySelector("[data-form-login]"),
       statusLogin: document.querySelector("[data-status-login]"),
-      canvas: document.querySelector("[data-admin-canvas]"),
+      grafico3d: document.querySelector("[data-admin-grafico-3d]"),
       periodo: document.querySelector("[data-periodo]"),
       filtroClientes: document.querySelector("[data-filtro-clientes]"),
       galeriaGrid: document.querySelector("[data-galeria-grid]"),
